@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CMMC L2">
+<title>CMMC Level 2 Study</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --warn: #f78166;
+    --muted: #8b949e;
+    --text: #e6edf3;
+    --text2: #c9d1d9;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --radius: 8px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; font-size: 15px; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding-top: max(12px, env(safe-area-inset-top, 12px)); }
+  .header-title { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; font-family: var(--mono); }
+  .random-btn { background: var(--accent); color: #0d1117; border: none; border-radius: var(--radius); padding: 8px 14px; font-family: var(--mono); font-size: 12px; font-weight: 600; cursor: pointer; letter-spacing: .03em; transition: opacity .15s; white-space: nowrap; }
+  .random-btn:active { opacity: .75; }
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 14px; font-size: 12px; font-family: var(--mono); color: var(--muted); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; flex-shrink: 0; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .list-view { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: calc(12px + var(--safe-bottom)); }
+  .control-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .control-card:active { background: var(--surface2); border-color: var(--accent); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .card-id { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+  .card-domain-badge { font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 4px; border: 1px solid; flex-shrink: 0; }
+  .card-title { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 5px; }
+  .card-preview { font-size: 12px; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .confidence-pill { font-size: 10px; font-family: var(--mono); padding: 2px 8px; border-radius: 20px; border: 1px solid; }
+  .confidence-none { color: var(--muted); border-color: var(--border); }
+  .confidence-needs { color: var(--warn); border-color: var(--warn); }
+  .confidence-good { color: var(--accent2); border-color: var(--accent2); }
+  .chevron { color: var(--muted); font-size: 14px; }
+  .detail-view { flex: 1; overflow-y: auto; display: none; flex-direction: column; }
+  .detail-view.visible { display: flex; }
+  .detail-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 16px; flex-shrink: 0; }
+  .back-btn { display: flex; align-items: center; gap: 6px; color: var(--accent); font-family: var(--mono); font-size: 12px; cursor: pointer; margin-bottom: 12px; background: none; border: none; padding: 0; }
+  .back-btn:active { opacity: .7; }
+  .detail-id { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+  .detail-title { font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--text); margin-bottom: 8px; }
+  .detail-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .detail-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: calc(80px + var(--safe-bottom)); }
+  .section { margin-bottom: 20px; }
+  .section-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-body { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; font-size: 14px; line-height: 1.65; color: var(--text2); }
+  .section-body.plain { background: var(--surface2); border-color: var(--accent); border-left-width: 3px; }
+  .evidence-list, .question-list { list-style: none; padding: 0; }
+  .evidence-list li, .question-list li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text2); line-height: 1.55; display: flex; gap: 10px; align-items: flex-start; }
+  .evidence-list li:last-child, .question-list li:last-child { border-bottom: none; }
+  .evidence-list li::before { content: '▸'; color: var(--accent2); flex-shrink: 0; margin-top: 1px; }
+  .question-list li::before { content: 'Q'; font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--warn); background: rgba(247,129,102,.15); border-radius: 3px; padding: 1px 5px; flex-shrink: 0; margin-top: 2px; }
+  .confidence-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; padding-bottom: calc(12px + var(--safe-bottom)); display: none; gap: 10px; }
+  .confidence-bar.visible { display: flex; }
+  .conf-btn { flex: 1; padding: 10px; border-radius: var(--radius); border: 1px solid; font-family: var(--mono); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; transition: opacity .15s; background: transparent; }
+  .conf-btn:active { opacity: .7; }
+  .conf-btn.needs { color: var(--warn); border-color: var(--warn); }
+  .conf-btn.needs.selected { background: rgba(247,129,102,.2); }
+  .conf-btn.good { color: var(--accent2); border-color: var(--accent2); }
+  .conf-btn.good.selected { background: rgba(63,185,80,.2); }
+  .domain-AC { color: #58a6ff; border-color: #58a6ff; }
+  .domain-AT { color: #ff7b72; border-color: #ff7b72; }
+  .domain-AU { color: #ffa657; border-color: #ffa657; }
+  .domain-CM { color: #e3b341; border-color: #e3b341; }
+  .domain-IA { color: #d2a8ff; border-color: #d2a8ff; }
+  .domain-IR { color: #79c0ff; border-color: #79c0ff; }
+  .domain-MA { color: #56d364; border-color: #56d364; }
+  .domain-MP { color: #ffa657; border-color: #ffa657; }
+  .domain-PS { color: #f0883e; border-color: #f0883e; }
+  .domain-PE { color: #a5d6ff; border-color: #a5d6ff; }
+  .domain-RA { color: #ff7b72; border-color: #ff7b72; }
+  .domain-CA { color: #7ee787; border-color: #7ee787; }
+  .domain-SC { color: #56d364; border-color: #56d364; }
+  .domain-SI { color: #f78166; border-color: #f78166; }
+  .filter-bar { padding: 10px 12px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; }
+  .search-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+  .count-badge { font-family: var(--mono); font-size: 11px; color: var(--muted); align-self: center; white-space: nowrap; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-family: var(--mono); font-size: 13px; }
+  @keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .detail-view.visible { animation: slideIn .2s ease-out; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-title">CMMC Level 2</div>
+    <div class="header-sub" id="progressLabel">Loading...</div>
+  </div>
+  <button class="random-btn" onclick="goRandom()">⚡ Random</button>
+</div>
+<div class="tabs" id="domainTabs">
+  <div class="tab active" data-domain="ALL" onclick="filterDomain('ALL',this)">All</div>
+</div>
+<div class="main" id="listMain">
+  <div class="filter-bar">
+    <input class="search-input" type="search" placeholder="Search controls..." id="searchInput" oninput="applyFilter()">
+    <span class="count-badge" id="countBadge"></span>
+  </div>
+  <div class="list-view" id="listView"></div>
+</div>
+<div class="detail-view" id="detailView">
+  <div class="detail-header">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <div class="detail-id" id="dId"></div>
+    <div class="detail-title" id="dTitle"></div>
+    <div class="detail-badges" id="dBadges"></div>
+  </div>
+  <div class="detail-content">
+    <div class="section"><div class="section-label">Control Statement</div><div class="section-body" id="dStatement"></div></div>
+    <div class="section"><div class="section-label">Plain Language</div><div class="section-body plain" id="dPlain"></div></div>
+    <div class="section"><div class="section-label">Evidence to Collect</div><div class="section-body" style="padding:0;overflow:hidden;"><ul class="evidence-list" id="dEvidence"></ul></div></div>
+    <div class="section"><div class="section-label">Assessor Questions</div><div class="section-body" style="padding:0;overflow:hidden;"><ul class="question-list" id="dQuestions"></ul></div></div>
+  </div>
+</div>
+<div class="confidence-bar" id="confBar">
+  <button class="conf-btn needs" id="btnNeeds" onclick="setConfidence('needs')">Needs Review</button>
+  <button class="conf-btn good" id="btnGood" onclick="setConfidence('good')">Confident ✓</button>
+</div>
+<script>
+const CONTROLS = [
+  // ── ACCESS CONTROL (AC) ──────────────────────────────────────────────────
+  {id:"AC.L1-3.1.1",domain:"AC",domainFull:"Access Control",title:"Authorized Access Control",
+   statement:"Limit system access to authorized users, processes acting on behalf of authorized users, and devices (including other systems).",
+   plain:"Only people and systems that are explicitly authorized should be able to reach your systems. Think of it like a keycard system — if you're not on the approved list, you can't get in. This applies to human users, automated processes, and connected devices alike. Authorization must be documented and enforced technically, not just on paper.",
+   evidence:["User account inventory with associated roles and access levels","Access request and approval records showing authorization workflow","Active Directory or IdP group membership exports tied to access decisions","Periodic access review/recertification records (e.g., quarterly)","Technical configuration showing role-based or attribute-based access enforcement"],
+   questions:["How does your organization determine who is authorized to access CUI systems, and what is the documented approval process?","Walk me through what happens when a new employee needs access to a controlled system — who approves, what is provisioned, and how is it tracked?","How are service accounts and shared accounts handled, and are generic accounts prohibited?","What controls prevent an unauthorized device from connecting to systems that process CUI?"]},
+
+  {id:"AC.L1-3.1.2",domain:"AC",domainFull:"Access Control",title:"Transaction & Function Control",
+   statement:"Limit system access to the types of transactions and functions that authorized users are permitted to execute.",
+   plain:"Authorization isn't just about who can log in — it's about what they can do once they're in. A helpdesk technician shouldn't be able to modify firewall rules. A read-only analyst shouldn't be able to delete records. This control requires that permissions be scoped to only the functions each role actually needs. Role-based access control (RBAC) is the most common implementation.",
+   evidence:["Role definitions matrix mapping job functions to permitted system actions","RBAC or ABAC configuration exports from systems handling CUI","Demonstration that users cannot perform functions outside their defined role","Privileged access workstation (PAW) or just-in-time access documentation for admin functions","Sample screenshots showing permission boundaries enforced in key systems"],
+   questions:["How are user roles defined, and who is responsible for mapping roles to permitted transactions?","Can you demonstrate that a standard user cannot perform administrative functions in your CUI systems?","How often are role definitions reviewed to ensure they still match job functions?","What happens when someone needs temporary elevated access — is there a formal process and is it logged?"]},
+
+  {id:"AC.L2-3.1.3",domain:"AC",domainFull:"Access Control",title:"Control CUI Flow",
+   statement:"Control the flow of CUI in accordance with approved authorizations.",
+   plain:"Even authorized users shouldn't be able to move CUI wherever they want. This control is about governing how information travels — between systems, networks, and to external destinations. CUI shouldn't flow to personal email, unapproved cloud storage, or unauthorized networks. You need technical controls, not just policy, to enforce these boundaries.",
+   evidence:["Data flow diagrams showing approved CUI pathways between systems and networks","DLP (Data Loss Prevention) tool configuration and policy documentation","Email gateway rules restricting CUI transmission to unauthorized destinations","Network segmentation documentation showing CUI system boundaries","Approved cloud/external service list for CUI handling with authorization rationale"],
+   questions:["How do you technically prevent CUI from being sent to unauthorized destinations such as personal email or consumer cloud storage?","Is there a documented and approved list of systems and services through which CUI may flow?","What controls prevent a user from copying CUI to a personal USB drive or unauthorized cloud account?","How would you detect if CUI left your environment through an unauthorized channel, and what is the response process?"]},
+
+  {id:"AC.L2-3.1.4",domain:"AC",domainFull:"Access Control",title:"Separation of Duties",
+   statement:"Separate the duties of individuals to reduce the risk of malevolent activity without collusion.",
+   plain:"No single person should have unchecked control over a critical process. Separation of duties means that the person who approves a transaction shouldn't also be the one who executes it, and the person who writes code shouldn't be the only one who deploys it. This limits the damage any one insider can do and forces collusion for fraud or sabotage.",
+   evidence:["Role matrix documenting separation of duties for critical functions","System configuration showing no single account has conflicting privileges","Change management workflow evidence showing distinct approver and implementer roles","Audit log samples demonstrating different identities for approval vs. execution steps","Documentation of compensating controls where true separation isn't technically feasible"],
+   questions:["What critical functions in your environment have separation of duties enforced, and how is it technically implemented?","Can a single administrator both approve and execute a change to a CUI system without another person's involvement?","How are conflicts of interest identified when assigning roles and permissions?","Where separation of duties is not fully achievable, what compensating controls are in place?"]},
+
+  {id:"AC.L2-3.1.5",domain:"AC",domainFull:"Access Control",title:"Least Privilege",
+   statement:"Employ the principle of least privilege, including for specific security functions and privileged accounts.",
+   plain:"Every user, process, and system should have only the minimum access needed to do its job — nothing more. An admin managing a backup system shouldn't also have domain admin rights. A read-only reporting account shouldn't have write access. Least privilege limits blast radius when an account is compromised and reduces insider risk. This is one of the most commonly cited deficiencies in CMMC assessments.",
+   evidence:["Privileged account inventory with justification for each elevated privilege granted","Evidence of regular privilege reviews with documented removal of unnecessary access","Configuration screenshots showing standard users do not have local admin rights","Comparison of what users have versus what their job role requires","Just-in-time (JIT) or just-enough-access (JEA) implementation documentation if applicable"],
+   questions:["How do you enforce least privilege — is it a manual review process, automated tooling, or both?","Do standard end users have local administrator rights on their workstations? If so, why, and what is the remediation plan?","When was the last privilege review conducted, and how many accounts had access removed as a result?","How are service account privileges managed to ensure they have only what is needed for their function?"]},
+
+  {id:"AC.L2-3.1.6",domain:"AC",domainFull:"Access Control",title:"Non-Privileged Account Use",
+   statement:"Use non-privileged accounts or roles when accessing non-security functions.",
+   plain:"Administrators should not use their privileged accounts for everyday tasks like browsing the web, reading email, or running standard applications. A separate, standard user account should be used for normal work, with privileged credentials only used when actually performing administrative tasks. This dramatically reduces the attack surface if a phishing email or malware compromises a daily-use account.",
+   evidence:["Policy documentation requiring separate accounts for privileged vs. standard activity","Evidence that admin accounts are not used for email, web browsing, or general productivity","Privileged Access Workstation (PAW) or jump server configuration documentation","Audit log samples showing admin accounts used only for administrative sessions","User interviews or attestations confirming dual-account usage practices"],
+   questions:["Do your administrators have separate accounts for daily use versus administrative tasks?","Can you show me that your privileged accounts are not configured with email clients or used for general internet browsing?","What technical controls enforce that admins use standard accounts for routine work?","How do you detect when a privileged account is used outside of expected administrative contexts?"]},
+
+  {id:"AC.L2-3.1.7",domain:"AC",domainFull:"Access Control",title:"Privileged Functions",
+   statement:"Prevent non-privileged users from executing privileged functions and capture the execution of such functions in audit logs.",
+   plain:"Regular users must be blocked — technically, not just by policy — from performing administrative actions. And when privileged functions are executed, they must be logged so there is an audit trail. This means audit logging must capture who ran what privileged command, when, and from where. Simply having a policy that says 'don't do admin things' without technical enforcement doesn't satisfy this control.",
+   evidence:["Technical configuration showing standard users cannot execute privileged commands (e.g., UAC settings, sudo restrictions)","Audit log configuration showing privileged function execution is captured","Sample audit logs demonstrating privileged actions are recorded with user identity and timestamp","SIEM or log management system showing privileged activity monitoring","Evidence that log tampering by privileged users is prevented or detected"],
+   questions:["What technical controls prevent a standard user from running administrative commands or accessing privileged system functions?","Show me an example audit log entry for a privileged function execution — what information is captured?","How are privileged function logs protected from tampering by the administrators who generated them?","How long are privileged activity audit logs retained, and who reviews them?"]},
+
+  {id:"AC.L2-3.1.8",domain:"AC",domainFull:"Access Control",title:"Unsuccessful Logon Attempts",
+   statement:"Limit unsuccessful logon attempts.",
+   plain:"After a defined number of failed login attempts, the system should lock the account or introduce a delay to prevent brute-force password attacks. This is a basic but important control. The lockout threshold, duration, and reset process should be documented and consistently enforced across all systems that handle CUI — not just the primary directory.",
+   evidence:["Account lockout policy documentation with defined threshold and lockout duration","Active Directory or IdP configuration screenshots showing lockout policy enforcement","Evidence that lockout policy is applied consistently across all CUI systems and applications","Help desk records showing account lockout reset procedures","Audit logs capturing failed logon attempts and subsequent lockout events"],
+   questions:["What is your account lockout threshold, and after how many failed attempts does lockout occur?","How long does an account remain locked, and what is the process to unlock it — can users self-unlock, or must an admin intervene?","Is the lockout policy consistently applied across all systems that handle CUI, including legacy applications?","How do you distinguish between a user who forgot their password and a potential brute-force attack in your monitoring?"]},
+
+  {id:"AC.L2-3.1.9",domain:"AC",domainFull:"Access Control",title:"Privacy & Security Notices",
+   statement:"Provide privacy and security notices consistent with CUI rules.",
+   plain:"Before users log in to a system that processes CUI, they should see a warning banner that informs them the system is for authorized use only, that activity may be monitored, and that there is no expectation of privacy. This banner serves both a legal notice function and a deterrence function. It must appear on all systems handling CUI, not just externally-facing systems.",
+   evidence:["System use notification (login banner) text approved by legal or compliance team","Screenshots showing login banners displayed on all CUI systems before authentication","Configuration documentation showing banners are enforced at OS or application layer","Policy referencing DoD or NIST requirements for system use notification content","Evidence banners cannot be bypassed or dismissed without acknowledgment"],
+   questions:["Can you show me the login banner that appears when accessing your CUI systems?","Who approved the banner text, and when was it last reviewed for accuracy?","How do you ensure the banner is consistently applied across all systems — including VPN portals, remote desktop, and web applications handling CUI?","Is the banner a hard block requiring acknowledgment before login, or can it be dismissed without reading?"]},
+
+  {id:"AC.L2-3.1.10",domain:"AC",domainFull:"Access Control",title:"Session Lock",
+   statement:"Use session lock with pattern-hiding displays after a period of inactivity.",
+   plain:"Workstations and terminals must automatically lock after a period of inactivity and hide the screen contents. If someone walks away from their desk without locking their screen, an unauthorized person shouldn't be able to walk up and access CUI. The lock must obscure what was on the screen — a screensaver that just shows the time doesn't satisfy this if the underlying content is still visible.",
+   evidence:["Group Policy or MDM configuration screenshots showing screen lock timeout enforcement","Defined inactivity timeout value documented in policy and implemented in configuration","Evidence of pattern-hiding display (screen obscured, not just a clear screensaver)","Consistent enforcement across workstations, laptops, and terminals in CUI areas","Testing evidence showing the lock activates within the required timeframe"],
+   questions:["What is your configured screen lock timeout period, and how is it enforced — Group Policy, MDM, or another mechanism?","Can a user override or extend the inactivity timeout, and if so, is that change logged?","Does the screen lock actually hide screen contents, or does it just display a screensaver over the active session?","Is the session lock policy applied consistently to remote sessions and VDI environments as well?"]},
+
+  {id:"AC.L2-3.1.11",domain:"AC",domainFull:"Access Control",title:"Session Termination",
+   statement:"Terminate (automatically) a user session after a defined condition.",
+   plain:"Beyond screen locking, systems should actually terminate sessions under defined conditions — such as after a maximum session duration, after extended inactivity beyond the lock timeout, or when the user's network location changes unexpectedly. Session termination is stronger than locking because it requires full re-authentication. This is especially important for web applications and remote access sessions handling CUI.",
+   evidence:["Session timeout configuration in web applications, VPNs, and remote access systems","Policy defining conditions that trigger automatic session termination","Technical configuration showing sessions are invalidated (not just locked) after defined conditions","Application server logs showing session termination events","Testing documentation showing sessions cannot be resumed after termination without re-authentication"],
+   questions:["Under what conditions are user sessions automatically terminated rather than just locked?","How are web application session timeouts configured, and can a session be resumed with a stale token?","What happens to an active VPN session if the user's machine is idle for an extended period?","How do you handle session termination for privileged administrative sessions — are those subject to shorter timeout windows?"]},
+
+  {id:"AC.L2-3.1.12",domain:"AC",domainFull:"Access Control",title:"Control Remote Access",
+   statement:"Monitor and control remote access sessions.",
+   plain:"Remote access to CUI systems must be both controlled (limited to authorized users via approved mechanisms) and monitored (logged and reviewed). This means VPNs, RDP, SSH, and any other remote access method must be tracked. Who connected, from where, when, and what did they do? Unmonitored remote access is a significant risk vector and a common finding in assessments.",
+   evidence:["Remote access policy documentation defining approved methods and authorized users","VPN, RDP, and SSH connection logs with user, source IP, and session duration","SIEM alerting configuration for anomalous remote access patterns","MFA enforcement evidence for all remote access connections","Periodic review records of remote access users and sessions"],
+   questions:["What remote access methods are authorized, and how is the list of authorized remote users maintained?","How are remote access sessions logged — what information is captured and for how long is it retained?","Is MFA required for all remote access, including VPN, RDP, and SSH?","How do you detect and respond to unauthorized or anomalous remote access attempts?"]},
+
+  {id:"AC.L2-3.1.13",domain:"AC",domainFull:"Access Control",title:"Remote Access Confidentiality",
+   statement:"Employ cryptographic mechanisms to protect the confidentiality of remote access sessions.",
+   plain:"All remote access must be encrypted. No plain-text protocols for remote access to CUI systems — no Telnet, no FTP, no unencrypted RDP without NLA and TLS. VPNs must use strong cryptographic algorithms. SSH sessions must use approved cipher suites. This is about ensuring that even if someone intercepts the network traffic, they cannot read the CUI being transmitted.",
+   evidence:["VPN configuration documentation showing encryption algorithms and key lengths in use","SSH server configuration files confirming only strong cipher suites are allowed","TLS configuration for remote access web portals (SSLLabs or equivalent scan results)","Network capture or protocol analysis confirming traffic is encrypted","Policy prohibiting use of unencrypted remote access protocols"],
+   questions:["What encryption protocols and algorithms protect your VPN and remote access sessions?","Are any legacy unencrypted protocols (Telnet, rsh, FTP) still in use anywhere for remote access to CUI systems?","How do you validate that your TLS and VPN configurations meet current cryptographic standards and have not degraded over time?","What is your process for updating cryptographic configurations when algorithms are deprecated?"]},
+
+  {id:"AC.L2-3.1.14",domain:"AC",domainFull:"Access Control",title:"Remote Access Routing",
+   statement:"Route remote access via managed access control points.",
+   plain:"Remote access traffic must flow through controlled chokepoints — not directly to internal systems. VPN concentrators, jump servers, and bastion hosts are the managed access control points that sit between remote users and CUI systems. This allows monitoring, filtering, and enforcement of access policies at a central point rather than relying on each individual system to be hardened against direct internet exposure.",
+   evidence:["Network architecture diagram showing remote access traffic routing through managed control points","VPN gateway or jump server configuration documentation","Firewall rules confirming direct remote access to CUI systems from the internet is blocked","Network flow logs showing all remote sessions passing through authorized access points","Jump server or bastion host hardening documentation"],
+   questions:["Show me your network diagram — where do remote users enter the network, and how does traffic reach CUI systems?","Is it possible for a remote user to access CUI systems directly without traversing your VPN or jump server?","How is the jump server or VPN concentrator itself hardened and monitored?","What controls at your managed access point enforce least privilege for remote sessions?"]},
+
+  {id:"AC.L2-3.1.15",domain:"AC",domainFull:"Access Control",title:"Privileged Remote Access",
+   statement:"Authorize remote execution of privileged commands and remote access to security-relevant information via remote access only for documented operational needs.",
+   plain:"Remote execution of administrative commands on CUI systems should be the exception, not the norm, and must be explicitly authorized. Admins shouldn't be remotely running privileged commands without a documented and approved reason. This is about ensuring that privileged remote activity doesn't happen casually — it should require authorization, be logged, and be limited to specific operational needs.",
+   evidence:["Policy explicitly authorizing specific privileged remote access scenarios with documented justification","Documented list of approved privileged remote access use cases","Audit logs capturing privileged command execution during remote sessions","PAM (Privileged Access Management) tool configuration restricting remote privileged access","Evidence of approval workflow for privileged remote access requests"],
+   questions:["What privileged remote access scenarios are explicitly authorized, and where is that authorization documented?","How do you distinguish between routine remote access and privileged remote access in your logging and monitoring?","Is there a PAM tool or session recording in place for remote privileged sessions?","What happens when an administrator needs to perform a privileged action remotely — is there a formal approval process?"]},
+
+  {id:"AC.L2-3.1.16",domain:"AC",domainFull:"Access Control",title:"Wireless Access Authorization",
+   statement:"Authorize wireless access prior to allowing such connections.",
+   plain:"Before any wireless connection to your network is allowed — especially to networks that carry CUI — it must be explicitly authorized. This means documented approval for wireless access, authenticated connection requirements, and a process to authorize specific devices or users for wireless connectivity. Rogue or unauthorized wireless access points are a significant threat vector.",
+   evidence:["Wireless access policy with authorization requirements","Wireless access authorization records for approved users and devices","Network Access Control (NAC) configuration requiring authentication before wireless association","Wireless site survey or audit showing no rogue access points","802.1X or certificate-based wireless authentication configuration documentation"],
+   questions:["What is the process for authorizing wireless access — who approves it, and what is documented?","How does your wireless infrastructure prevent unauthorized devices from connecting?","How do you detect and respond to rogue wireless access points on your network?","Is 802.1X or another enterprise authentication method enforced on your wireless networks that carry CUI?"]},
+
+  {id:"AC.L2-3.1.17",domain:"AC",domainFull:"Access Control",title:"Wireless Access Protection",
+   statement:"Protect wireless access using authentication and encryption.",
+   plain:"Wireless networks carrying CUI must use strong authentication (not just a pre-shared key) and encryption (WPA2-Enterprise or WPA3 at minimum). WEP is completely unacceptable. A shared password for a CUI wireless network is also inadequate — individual authentication is required so access can be traced to a specific user or device and revoked individually if needed.",
+   evidence:["Wireless network configuration showing WPA2-Enterprise or WPA3 with 802.1X","RADIUS server configuration documentation supporting wireless authentication","Certificate or credential-based authentication evidence for wireless users","Prohibition of WEP and WPA-Personal (pre-shared key) on CUI networks","Wireless encryption audit results confirming strong cipher suites"],
+   questions:["What wireless security protocol is in use on networks that carry CUI — WPA2-Enterprise, WPA3, or something else?","Are any networks carrying CUI using pre-shared key (PSK) authentication? If so, what is the remediation plan?","How are individual wireless users authenticated, and how is that authentication logged?","How do you revoke wireless access for a specific user or device that should no longer have access?"]},
+
+  {id:"AC.L2-3.1.18",domain:"AC",domainFull:"Access Control",title:"Mobile Device Connection",
+   statement:"Control connection of mobile devices.",
+   plain:"Mobile devices — phones, tablets, laptops connecting via cellular — that access CUI systems must be authorized and controlled. BYOD (Bring Your Own Device) without management controls is a significant risk. This requires either MDM enrollment, prohibition of personal devices from accessing CUI, or other controls that ensure mobile connections don't bypass your security architecture.",
+   evidence:["Mobile device policy defining authorized device types and management requirements","MDM (Mobile Device Management) platform enrollment records for authorized devices","Technical configuration blocking unmanaged devices from accessing CUI systems","List of authorized mobile devices with corresponding justification","Compliance reporting from MDM showing device health status"],
+   questions:["Are personal (BYOD) mobile devices permitted to access systems that handle CUI? If so, what controls apply?","What MDM solution is in use, and what security configurations are enforced on enrolled devices?","How do you prevent an unmanaged personal device from connecting to CUI systems via your VPN or wireless network?","What happens when an employee's mobile device is lost or stolen — what is the remote wipe process?"]},
+
+  {id:"AC.L2-3.1.19",domain:"AC",domainFull:"Access Control",title:"Encrypt CUI on Mobile",
+   statement:"Encrypt CUI on mobile devices and mobile computing platforms.",
+   plain:"Any CUI stored on a mobile device — laptop, tablet, phone — must be encrypted. This means full-device encryption must be enabled, not just folder-level encryption. If a laptop is lost or stolen, the encrypted storage should prevent someone from accessing CUI by removing the drive or booting from external media. BitLocker, FileVault, and similar solutions satisfy this when properly configured.",
+   evidence:["MDM compliance report showing device encryption enabled on all managed mobile devices","BitLocker or FileVault configuration and enforcement documentation","Encryption key management documentation (how keys are stored and recovered)","Policy requiring encryption on all mobile devices handling CUI","Evidence that encryption is verified, not just self-attested by users"],
+   questions:["What encryption solution is used on laptops and mobile devices that may store or access CUI?","How do you verify that encryption is actually enabled — is this enforced through MDM or self-reported by users?","What is the encryption key recovery process if a user forgets their PIN or a device needs forensic examination?","How do you handle devices that cannot support full-disk encryption due to hardware limitations?"]},
+
+  {id:"AC.L2-3.1.20",domain:"AC",domainFull:"Access Control",title:"External System Connections",
+   statement:"Verify and control/limit connections to external systems.",
+   plain:"When you connect to an external system — a contractor's network, a government portal, a cloud service — or when external systems connect to yours, those connections must be authorized and controlled. You can't just assume external systems are trustworthy. This includes limiting what external systems can access on your network, requiring agreements with external system owners, and ensuring external connections don't bypass your security controls.",
+   evidence:["Interconnection Security Agreements (ISAs) or MOUs with external system owners","Authorized external connection inventory with justification and approval documentation","Firewall rules restricting external system access to only required resources","C2C (Cloud-to-Cloud) or API connection authorization records","Periodic review of external connections to confirm they are still necessary and authorized"],
+   questions:["What external systems connect to or from your CUI environment, and how are those connections authorized?","Do you have Interconnection Security Agreements (ISAs) with external system owners, and when were they last reviewed?","How do you technically limit what an external system can access once connected to your environment?","What is the process for decommissioning an external connection that is no longer needed?"]},
+
+  {id:"AC.L2-3.1.21",domain:"AC",domainFull:"Access Control",title:"Portable Storage Use",
+   statement:"Limit use of portable storage devices on external systems.",
+   plain:"When your users access CUI on systems you don't own or control — such as a government computer or a contractor's workstation — they should not be plugging in portable storage devices like USB drives. The risk is two-way: data could be exfiltrated to the USB, or malware could be introduced from it. This control limits that risk by restricting portable storage use in those external system contexts.",
+   evidence:["Policy prohibiting or limiting use of portable storage on external or government systems","Technical controls (USB restriction via GPO or endpoint agent) on managed devices","User training acknowledgment covering portable storage restrictions","Evidence portable storage devices are managed and approved before use","Audit log entries showing USB insertion events on monitored systems"],
+   questions:["Is the use of portable storage devices (USB drives, external hard drives) restricted or prohibited on systems that handle CUI?","How is the USB restriction technically enforced — Group Policy, endpoint agent, or physical port blocking?","What is the process for authorizing a portable storage device when one is genuinely needed?","How do you handle the situation where a user needs to transfer data — what are the approved alternatives to USB?"]},
+
+  {id:"AC.L2-3.1.22",domain:"AC",domainFull:"Access Control",title:"Control Public Information",
+   statement:"Control CUI posted or processed on publicly accessible systems.",
+   plain:"If your organization operates any publicly accessible systems — public websites, FTP servers, publicly accessible portals — you must ensure CUI does not end up there. This requires a review and approval process before any information is posted publicly, and ongoing monitoring to ensure sensitive data hasn't accidentally been exposed. A well-intentioned employee posting the wrong document to a public site can be a significant breach.",
+   evidence:["Review and approval process documentation for content posted to public-facing systems","Evidence of periodic scans or reviews of publicly accessible systems for inadvertent CUI exposure","DLP controls on systems that feed public-facing content","Training records covering restrictions on posting CUI publicly","Incident records if any inadvertent public disclosure has been discovered and remediated"],
+   questions:["What is the review and approval process before information is posted to your public website or any publicly accessible system?","How do you scan or monitor public-facing systems to detect if CUI has been inadvertently exposed?","Who has authority to approve public postings, and how is that authority enforced technically?","Has there ever been an incident where CUI was inadvertently posted publicly? How was it handled?"]},
+
+  // ── AWARENESS & TRAINING (AT) ─────────────────────────────────────────────
+  {id:"AT.L2-3.2.1",domain:"AT",domainFull:"Awareness & Training",title:"Literacy Training and Awareness",
+   statement:"Ensure that managers, system administrators, and users of organizational systems are made aware of the security risks associated with their activities and of the applicable policies, standards, and procedures related to the security of those systems.",
+   plain:"Everyone who touches a CUI system must be trained on the security risks of their role and on the organization's security policies and procedures. This isn't just a checkbox training — the content must be relevant to what people actually do and must be updated as the threat landscape and policies change. Managers, admins, and end users each need awareness appropriate to their responsibilities.",
+   evidence:["Security awareness training program curriculum documentation","Training completion records for all personnel with CUI system access","Training content covering current threats (phishing, social engineering, data handling)","Evidence of annual training refresh or updates when policies change","Acknowledgment records signed by employees confirming policy awareness"],
+   questions:["What security awareness training is provided to all personnel, and how often is it conducted?","How is training content kept current with evolving threats and policy changes?","Can you demonstrate that all personnel with CUI system access have completed required training?","How do you handle employees who fail to complete required training — are there consequences?"]},
+
+  {id:"AT.L2-3.2.2",domain:"AT",domainFull:"Awareness & Training",title:"Role-Based Security Training",
+   statement:"Ensure that personnel with assigned information security responsibilities receive appropriate training to carry out those responsibilities.",
+   plain:"General security awareness is not enough for people who have security-specific roles. System administrators, security staff, incident responders, and others with elevated security responsibilities need training specifically relevant to their duties. An admin managing firewalls needs to understand firewall security concepts — not just phishing awareness. This training must be tied to actual job functions.",
+   evidence:["Role-specific training curriculum for each security-relevant job function","Training completion records tied to job roles (not just blanket course assignments)","Evidence of specialized training (vendor certifications, SANS courses, internal workshops)","Job descriptions showing security responsibilities that map to required training","Annual training plan identifying role-based training tracks by position"],
+   questions:["How do you identify which employees require role-based security training beyond standard awareness training?","What specific training do your system administrators receive that general users do not?","How do you verify that role-based training was completed and comprehended, not just clicked through?","When someone takes on new security responsibilities, how quickly are they required to complete relevant training?"]},
+
+  {id:"AT.L2-3.2.3",domain:"AT",domainFull:"Awareness & Training",title:"Insider Threat Awareness",
+   statement:"Provide security awareness training on recognizing and reporting potential indicators of insider threat.",
+   plain:"Insider threats — malicious or negligent employees, contractors, and others with authorized access — are one of the most difficult threats to defend against. Personnel must be trained to recognize warning signs: unusual data access patterns, colleagues expressing grievances combined with unusual system activity, unauthorized data transfers, or attempts to access systems beyond their role. They must also know how to report concerns without fear of retaliation.",
+   evidence:["Training curriculum with specific insider threat awareness content","Reporting mechanism documentation (hotline, anonymous reporting tool, HR process)","Training records showing insider threat module completion","Policy documentation covering insider threat indicators and reporting obligations","Evidence of post-training awareness exercises or phishing simulations testing insider threat recognition"],
+   questions:["What insider threat awareness content is included in your security training program?","How can employees report concerns about potential insider threat activity — is there an anonymous option?","What indicators of insider threat are personnel trained to recognize?","How do you balance insider threat monitoring with employee privacy and legal considerations?"]},
+
+  // ── AUDIT & ACCOUNTABILITY (AU) ───────────────────────────────────────────
+  {id:"AU.L2-3.3.1",domain:"AU",domainFull:"Audit & Accountability",title:"Event Logging",
+   statement:"Create and retain system audit logs and records to the extent needed to enable the monitoring, analysis, investigation, and reporting of unlawful or unauthorized system activity.",
+   plain:"You must log security-relevant events across your CUI systems — logon/logoff, privilege use, account changes, object access, policy changes, and more. And you must retain those logs long enough to support incident investigation. A log that rolls over every 24 hours is useless for investigating a breach that went undetected for weeks. Retention periods must be defined in policy and technically enforced.",
+   evidence:["Audit logging policy defining what events are logged and retention periods","SIEM or log management platform configuration showing log sources and retention settings","Sample audit log entries from key systems (domain controllers, file servers, VPN, applications)","Evidence that logs include required fields: who, what, when, where (source IP), outcome","Log storage capacity and retention compliance reporting"],
+   questions:["What events are captured in your audit logs, and across which systems?","What is your log retention period, and how is retention technically enforced to prevent logs from being overwritten?","How do you ensure that audit logging is enabled and functioning on all CUI systems — is this monitored?","What information is captured in each log entry — does it include the user identity, source, action, and outcome?"]},
+
+  {id:"AU.L2-3.3.2",domain:"AU",domainFull:"Audit & Accountability",title:"User Accountability",
+   statement:"Ensure that the actions of individual users can be uniquely traced to those users so they can be held accountable for their actions.",
+   plain:"Every action on a CUI system must be traceable to a specific individual. This means no shared accounts, no generic credentials, no anonymous actions. If a log entry says 'admin' deleted a file, you have no accountability. Each user needs a unique identifier so that if something goes wrong, you can say definitively 'this person did this action at this time.'",
+   evidence:["Policy prohibiting shared or generic accounts on CUI systems","User account naming convention documentation showing unique identifier assignment","Audit log samples demonstrating individual user actions are captured with unique identifiers","Evidence that service accounts are individually named and their use is attributable","Periodic review records confirming no shared accounts exist in CUI systems"],
+   questions:["Are there any shared or generic accounts (e.g., 'admin', 'helpdesk') on systems that process CUI?","How do you ensure that audit logs can uniquely identify the individual behind every action, not just an account name?","How are service accounts and system accounts handled — can their actions be traced back to a human responsible for them?","If an unauthorized action were detected in audit logs, how confident are you that you could identify the specific individual responsible?"]},
+
+  {id:"AU.L2-3.3.3",domain:"AU",domainFull:"Audit & Accountability",title:"Event Review",
+   statement:"Review and analyze system audit logs for indications of inappropriate or unusual activity, report findings to appropriate personnel, and take corrective action.",
+   plain:"Collecting logs is only half the job — someone must actually look at them. This control requires regular review and analysis of audit logs to identify anomalies, suspicious patterns, or unauthorized activity. Manual log review at scale is impractical, which is why most organizations use a SIEM with alerting. But automated alerting alone isn't sufficient without defined response procedures and evidence of actual review.",
+   evidence:["SIEM alert rules and tuning documentation showing log analysis is occurring","Log review schedule and records of completed reviews","SIEM dashboard screenshots showing active monitoring of CUI systems","Alert investigation records or tickets showing follow-up on flagged events","Reporting documentation showing log findings are escalated to appropriate personnel"],
+   questions:["How frequently are audit logs reviewed, and who is responsible for that review?","What tooling is used to analyze logs — is it manual, SIEM-based, or a combination?","Can you show me examples of alerts generated from log analysis and how they were investigated?","How are anomalous findings escalated, and what is the expected response time for different alert severities?"]},
+
+  {id:"AU.L2-3.3.4",domain:"AU",domainFull:"Audit & Accountability",title:"Audit Failure Alerting",
+   statement:"Alert in the event of an audit logging process failure.",
+   plain:"If your audit logging system fails — disk full, service crash, network connectivity to a log collector lost — you must be alerted immediately. Silent logging failures are dangerous because you lose your visibility and audit trail without knowing it. An attacker who knows your logging is down can operate freely. Monitoring the health of your logging infrastructure is as important as the logs themselves.",
+   evidence:["SIEM or log management alerting configuration for logging failures","Evidence of alerts triggered when a log source stops sending events","Monitoring dashboard showing logging infrastructure health","Documented response procedure for logging failures","Test records showing the audit failure alert was verified to work"],
+   questions:["What happens if a system stops sending logs to your SIEM — how quickly are you alerted?","Can you demonstrate that an alert is generated when a critical log source goes silent?","What is your response procedure when an audit logging failure is detected?","How is log storage capacity monitored to prevent logs from being lost due to disk full conditions?"]},
+
+  {id:"AU.L2-3.3.5",domain:"AU",domainFull:"Audit & Accountability",title:"Audit Correlation",
+   statement:"Correlate audit record review, analysis, and reporting processes for investigation and response to indications of unlawful, unauthorized, suspicious, or unusual activity.",
+   plain:"Audit events from different systems need to be correlated to build a complete picture of an incident. A failed VPN login from an unusual country followed by a successful login 10 minutes later on a VPN that doesn't enforce MFA, followed by large data access — each event alone might not trigger an alert, but together they tell a story. SIEM platforms with correlation rules are the primary tool for this control.",
+   evidence:["SIEM correlation rules documentation targeting multi-source attack patterns","Evidence of multi-source log ingestion in the SIEM (AD, VPN, endpoints, network, applications)","Sample correlation alert showing events stitched across systems","Incident investigation records demonstrating cross-system correlation was used","SIEM dashboard showing unified timeline view of correlated events"],
+   questions:["What SIEM or log correlation tool is in use, and what log sources feed into it?","Can you show me an example correlation rule that ties events across multiple systems?","How are audit records from disparate systems normalized to support timeline correlation?","Has correlation of audit records been used to investigate an actual incident? Can you walk through an example?"]},
+
+  {id:"AU.L2-3.3.6",domain:"AU",domainFull:"Audit & Accountability",title:"Reduction & Reporting",
+   statement:"Provide an audit reduction and report generation capability that does not alter the original content or timing of audit records.",
+   plain:"You must be able to generate reports and summaries from audit data without modifying the underlying log records. Audit reduction means distilling large volumes of logs into actionable reports. The key requirement is that this reporting process must not alter, filter, or delete original records — the source of truth must remain intact. This is important for forensic validity.",
+   evidence:["Report generation tools or SIEM dashboards that produce summaries from raw logs","Documentation confirming raw logs are stored separately and immutably from reports","Sample compliance or activity reports generated from audit data","Audit log integrity verification mechanism (hashing, write-once storage)","Evidence that filtered or summarized reports do not overwrite source records"],
+   questions:["How do you generate audit reports and summaries, and what tools are used?","How do you ensure that audit record reduction or reporting doesn't alter the original log data?","Are your raw audit logs stored in a write-protected or immutable format to prevent tampering?","Can you produce an on-demand report of privileged account activity for the last 30 days?"]},
+
+  {id:"AU.L2-3.3.7",domain:"AU",domainFull:"Audit & Accountability",title:"Authoritative Time Source",
+   statement:"Provide a system capability that compares and synchronizes internal system clocks with an authoritative source to generate time stamps for audit records.",
+   plain:"All systems must have their clocks synchronized to an authoritative time source (like NIST's NTP servers). Log correlation only works if all systems agree on what time it is. A 5-minute clock skew between a firewall and a domain controller can make it impossible to reconstruct an attack timeline accurately. NTP synchronization must be enforced, monitored, and traceable to a reliable source.",
+   evidence:["NTP configuration documentation on all CUI systems showing authoritative time source","Group Policy or configuration management showing NTP enforcement","Monitoring evidence showing clock synchronization compliance across systems","Documentation of NTP hierarchy (stratum levels) in the environment","Evidence that audit log timestamps are consistent across correlated log sources"],
+   questions:["What time synchronization protocol and authoritative time source are configured across your CUI systems?","How do you enforce NTP configuration — is it managed centrally or configured per-system?","How do you monitor for clock drift or systems that are out of sync with the authoritative time source?","Have you ever encountered a situation where clock skew impeded an incident investigation?"]},
+
+  {id:"AU.L2-3.3.8",domain:"AU",domainFull:"Audit & Accountability",title:"Audit Protection",
+   statement:"Protect audit information and audit tools from unauthorized access, modification, and deletion.",
+   plain:"Audit logs are only useful if they can be trusted. If an attacker (or a malicious insider) can modify or delete logs, they can cover their tracks. Logs must be protected from unauthorized access and from modification by the users whose actions they record. This typically means centralized log storage with access controls, write-once or append-only storage, and privileged account restrictions on log management.",
+   evidence:["Access controls on log storage restricting modification and deletion","Write-once or append-only storage configuration for audit logs (WORM storage, log forwarding to immutable destination)","Evidence that administrators cannot delete their own activity logs","Log integrity verification mechanisms (hashing, checksums)","SIEM platform access controls showing who can access and manage audit data"],
+   questions:["Who has access to your audit logs, and can administrators modify or delete logs that contain their own activity?","How are audit logs protected from tampering — is write-once or immutable storage in use?","What would an attacker need to do to successfully cover their tracks by modifying your audit logs?","How do you verify the integrity of audit logs to detect if they have been tampered with?"]},
+
+  {id:"AU.L2-3.3.9",domain:"AU",domainFull:"Audit & Accountability",title:"Audit Management",
+   statement:"Limit management of audit logging to a subset of privileged users.",
+   plain:"The ability to configure, manage, start, stop, or modify the audit logging system itself must be restricted to a small, specifically authorized group — and should be separate from general system administration. If any admin can turn off logging, the integrity of your audit trail is at risk. Management of the logging infrastructure should require special authorization and be itself logged.",
+   evidence:["Documentation of who has audit management privileges and the justification","Access control configuration showing audit management restricted to authorized subset","Separation between audit management role and general system administration","Audit logs of audit management actions (changes to logging configuration)","Policy defining who may manage audit systems and approval requirements"],
+   questions:["Who has the ability to modify audit logging configurations or disable logging — how many people, and how is that access controlled?","Is the set of people who can manage audit systems different from general system administrators?","Are actions taken to manage the audit logging system itself logged somewhere tamper-resistant?","What approval is required before someone is granted audit management privileges?"]},
+
+  // ── CONFIGURATION MANAGEMENT (CM) ────────────────────────────────────────
+  {id:"CM.L2-3.4.1",domain:"CM",domainFull:"Configuration Management",title:"Baseline Configurations",
+   statement:"Establish and maintain baseline configurations and inventories of organizational systems (including hardware, software, firmware, and documentation) throughout the respective system development life cycles.",
+   plain:"You need to know what 'normal' looks like for every system you operate. A baseline configuration is the documented, approved state of a system. If something changes from that baseline without authorization, that's a red flag. This also requires maintaining an accurate, up-to-date inventory of all hardware and software assets. You can't secure what you don't know you have.",
+   evidence:["System inventory (CMDB or equivalent) covering all hardware and software assets","Baseline configuration documentation (STIGs, CIS benchmarks, or organization-defined baselines)","Automated configuration compliance scanning results","Change management records linking approved changes to baseline updates","Software bill of materials (SBOM) or equivalent for critical systems"],
+   questions:["How is your asset inventory maintained — is it automated or manual, and how often is it reconciled?","What tool or process do you use to detect when a system deviates from its approved baseline configuration?","How are baseline configurations updated when a patch or new software is authorized?","Walk me through how you would know if unauthorized software was installed on a CUI system."]},
+
+  {id:"CM.L2-3.4.2",domain:"CM",domainFull:"Configuration Management",title:"Establish Configuration Settings",
+   statement:"Establish and enforce security configuration settings for information technology products employed in organizational systems.",
+   plain:"Every system, application, and device must be configured securely — not just installed with defaults. Default configurations are often insecure. This means using industry-recognized security benchmarks (CIS, DISA STIGs) and enforcing those settings technically. Configuration settings must be documented, enforced through tools like Group Policy or configuration management systems, and verified regularly.",
+   evidence:["Security configuration baselines referencing CIS benchmarks or DISA STIGs","Configuration management tool (SCCM, Ansible, Chef, etc.) deployment evidence","Automated compliance scanning results showing adherence to configuration baselines","Hardening checklists completed for each major system type","Documented exceptions to security baselines with risk acceptance rationale"],
+   questions:["What security configuration benchmarks do you follow — CIS, DISA STIG, or a custom baseline?","How are security configuration settings enforced — Group Policy, configuration management tools, or manual hardening?","How do you scan for and detect configuration drift from your established baselines?","What is the process for documenting and approving exceptions to security configuration standards?"]},
+
+  {id:"CM.L2-3.4.3",domain:"CM",domainFull:"Configuration Management",title:"Unauthorized Change Detection",
+   statement:"Track, review, approve, and log changes to organizational systems.",
+   plain:"All changes to CUI systems must go through a formal change management process — documented, reviewed, approved, and logged. Unauthorized changes are a significant risk because they could introduce vulnerabilities, create backdoors, or destabilize systems. A formal change management process ensures that changes are evaluated for security impact before implementation.",
+   evidence:["Change management policy and formal change control procedure documentation","Change management system records (tickets) showing request, review, approval, and implementation","Evidence that emergency changes still follow an expedited approval process","Configuration monitoring tool detecting and alerting on unauthorized changes","Post-implementation review records confirming changes were implemented as approved"],
+   questions:["Walk me through your change management process from the time a change is requested to when it's implemented and closed.","How are unauthorized or undocumented changes detected — do you have configuration monitoring tools?","What is the emergency change process, and does it still require some form of approval before implementation?","How do you ensure that changes made by vendors or contractors go through your change management process?"]},
+
+  {id:"CM.L2-3.4.4",domain:"CM",domainFull:"Configuration Management",title:"Security Impact Analysis",
+   statement:"Analyze the security impact of changes prior to implementation.",
+   plain:"Before any change is made to a CUI system, its potential security impact must be analyzed. This isn't just asking 'will this break something' — it's asking 'will this introduce a vulnerability, weaken a control, or create an unintended access pathway?' Security must be part of the change review process, not an afterthought. Changes that could impact security posture require specific security review and approval.",
+   evidence:["Change management form or ticket template including security impact assessment field","Evidence that security review is part of the change approval workflow","Security review signoff on change tickets for CUI system changes","Risk assessment documentation for significant configuration changes","Rejected or modified change requests based on negative security impact analysis"],
+   questions:["How is security impact assessed as part of your change management process — who performs the assessment?","Can you show me a change ticket where a security impact analysis was documented?","Has a proposed change ever been rejected or modified due to security impact concerns? Walk me through an example.","How do you handle changes that initially appear routine but reveal security concerns during review?"]},
+
+  {id:"CM.L2-3.4.5",domain:"CM",domainFull:"Configuration Management",title:"Access Restrictions for Change",
+   statement:"Define, document, approve, and enforce physical and logical access restrictions associated with changes to organizational systems.",
+   plain:"Only authorized individuals should have the ability to make changes to CUI systems, and that access should be tightly controlled. This means separate production and development environments, change management systems with role-based access, and technical controls preventing unauthorized modifications. Who can approve changes, who can implement them, and who can make emergency changes must all be defined and enforced.",
+   evidence:["Documented roles and permissions for change implementation in production systems","Production environment access restrictions limiting who can make changes","Evidence of separate development, test, and production environments","Change management system access control configuration","Audit logs showing only authorized individuals implemented approved changes"],
+   questions:["Who is authorized to make changes to production CUI systems, and how is that access technically controlled?","How are development and test environments separated from production to prevent unauthorized changes?","What prevents an unauthorized person from directly modifying a production CUI system configuration?","How is access to change implementation tools (e.g., deployment systems, configuration management) restricted?"]},
+
+  {id:"CM.L2-3.4.6",domain:"CM",domainFull:"Configuration Management",title:"Least Functionality",
+   statement:"Configure the system to provide only essential capabilities.",
+   plain:"Systems should be configured to provide only the services, ports, protocols, and functions that are actually needed for their purpose. Unnecessary services are attack surface. A web server doesn't need a print spooler. A database server doesn't need Bluetooth. Every unneeded service is another potential vulnerability. This principle applies to both operating systems and applications.",
+   evidence:["Hardened system configurations showing disabled unnecessary services","Port scan results confirming only required ports are open on CUI systems","Application whitelisting or service allowlist documentation","Evidence that default installation services have been evaluated and unneeded ones disabled","Periodic review records confirming system functions remain appropriately limited"],
+   questions:["How do you determine which services and ports are necessary on each system type?","What is the process for disabling unneeded services during system build — is this documented in a baseline?","How do you detect when a new service has been enabled on a CUI system that wasn't authorized?","Who reviews and approves requests to enable new services or protocols on CUI systems?"]},
+
+  {id:"CM.L2-3.4.7",domain:"CM",domainFull:"Configuration Management",title:"Nonessential Functionality",
+   statement:"Restrict, disable, or prevent the use of programs, functions, ports, protocols, and services not required.",
+   plain:"Similar to least functionality, this control specifically calls out the need to restrict unnecessary programs and features — not just services. Unused Windows features like PowerShell Remoting, LLMNR, or NetBIOS should be disabled if not needed. Unnecessary browser plugins, file sharing protocols, and development tools on production systems should be removed or restricted. Every unnecessary capability is a potential pivot point.",
+   evidence:["Configuration documentation showing disabled unnecessary Windows features and roles","Browser extension/plugin management policy and enforcement","Network protocol restriction configuration (e.g., LLMNR/NetBIOS disabled)","Application control policy restricting unauthorized program execution","Evidence of regular review and removal of no-longer-needed functionality"],
+   questions:["What process do you use to identify and disable unnecessary features in operating systems and applications?","Are protocols like LLMNR, NetBIOS, and SMBv1 disabled in your environment? How is that enforced?","How do you prevent users from installing or enabling unauthorized programs or browser extensions?","When a business need for a function ends, what is the process to disable or remove it?"]},
+
+  {id:"CM.L2-3.4.8",domain:"CM",domainFull:"Configuration Management",title:"Application Execution Policy",
+   statement:"Apply deny-by-default and allow-by-exception policies for software usage and installation.",
+   plain:"Instead of allowing anything that hasn't been explicitly blocked, flip the model: block everything and only allow what is explicitly approved. Application whitelisting (or 'allowlisting') means only approved software can run. This is a powerful control against malware — even if a user downloads malicious code, it can't execute because it's not on the approved list. Tools like Windows Defender Application Control (WDAC), AppLocker, or third-party solutions implement this.",
+   evidence:["Application whitelisting/allowlisting policy and technical implementation documentation","WDAC, AppLocker, or equivalent tool configuration showing deny-by-default rules","Evidence of approved application list and the process for requesting additions","Test results showing unauthorized applications are blocked from executing","Audit logs of blocked application execution attempts"],
+   questions:["Do you implement application allowlisting — where only explicitly approved software can execute?","What tool implements your application execution policy — AppLocker, WDAC, or a third-party solution?","How does a user request a new application to be added to the approved list?","How does your application execution policy handle script-based attacks (PowerShell, VBScript)?"]},
+
+  {id:"CM.L2-3.4.9",domain:"CM",domainFull:"Configuration Management",title:"User-Installed Software",
+   statement:"Control and monitor user-installed software.",
+   plain:"Users should not be able to install software on CUI systems without authorization. Even well-meaning users installing productivity tools can introduce vulnerabilities, licensing issues, or unauthorized data pathways. This control requires both preventing unauthorized installation and monitoring for software that has been installed outside the approved process. Local admin rights removal is the primary enforcement mechanism.",
+   evidence:["Policy prohibiting unauthorized software installation","Technical control evidence showing standard users lack software installation privileges","Software inventory with approved vs. detected software comparison","Monitoring for unauthorized software installation (endpoint management alerts)","Help desk records showing the software installation request and approval process"],
+   questions:["Can standard users install software on CUI systems without administrator assistance?","How do you detect if a user has installed unauthorized software — is this monitored automatically?","What is the process for a user to request software they need — who approves it, and how is it vetted?","How frequently do you scan for unauthorized software, and what happens when it is found?"]},
+
+  // ── IDENTIFICATION & AUTHENTICATION (IA) ──────────────────────────────────
+  {id:"IA.L1-3.5.1",domain:"IA",domainFull:"Identification & Authentication",title:"Identify System Users",
+   statement:"Identify information system users, processes acting on behalf of users, and devices.",
+   plain:"Every user, automated process, and device must have a unique identity in the system. You can't manage access or accountability if you don't know who or what is accessing your systems. This means individual user accounts (no sharing), named service accounts for automated processes, and device identification for hardware connecting to CUI systems. Identification is the foundation that all other access controls depend on.",
+   evidence:["User account inventory showing unique identifiers for all users","Service account documentation listing automated processes and their associated accounts","Device inventory with unique identifiers for CUI system assets","Active Directory or IdP user directory exports showing distinct accounts","Evidence that shared or anonymous accounts are prohibited and not present"],
+   questions:["How is each user uniquely identified in your systems — what is the account naming convention?","How are automated processes or service accounts identified and distinguished from human user accounts?","How are devices identified when they connect to CUI networks?","Is there any system or process in your environment that still uses shared or anonymous credentials?"]},
+
+  {id:"IA.L1-3.5.2",domain:"IA",domainFull:"Identification & Authentication",title:"Authenticate System Users",
+   statement:"Authenticate (or verify) the identities of those users, processes, or devices, as a prerequisite to allowing access to organizational information systems.",
+   plain:"Identification tells the system who you claim to be; authentication proves it. Users must present credentials (passwords, certificates, tokens) that verify their claimed identity before being granted access. Every access point — login screens, API endpoints, network connections — must require authentication. Unauthenticated access to systems handling CUI is never acceptable.",
+   evidence:["Authentication policy requiring credentials for all system access","Technical demonstration that all access points require authentication","Password or credential policy documentation","Evidence of authentication being enforced at network, system, and application levels","Audit logs showing authentication events for all user access"],
+   questions:["Are there any systems or access points that allow unauthenticated access in your CUI environment?","How is authentication enforced at each layer — network, operating system, and application?","How do you ensure that authentication mechanisms are consistently applied, including for internal systems?","What is the process when authentication credentials are suspected to be compromised?"]},
+
+  {id:"IA.L2-3.5.3",domain:"IA",domainFull:"Identification & Authentication",title:"Multifactor Authentication",
+   statement:"Use multifactor authentication for local and network access to privileged accounts and for network access to non-privileged accounts.",
+   plain:"A password alone is not enough for CUI systems. MFA requires at least two factors: something you know (password), something you have (phone, hardware token, smart card), or something you are (biometric). For privileged accounts, MFA is required even for local console access. For standard users, MFA is required for network access. This dramatically reduces the risk of credential-based attacks.",
+   evidence:["MFA solution configuration documentation (Duo, Okta, Azure MFA, etc.)","MFA enrollment rate report showing all required users are enrolled","Policy documentation mandating MFA for all specified account types","Exceptions log if any accounts lack MFA, with compensating controls documented","Authentication logs demonstrating MFA challenges on login events"],
+   questions:["What MFA solution is in use, and does it apply to all users or only specific groups?","Are there any accounts or systems where MFA is not enforced? If so, why, and what compensating controls exist?","How are privileged accounts handled — is MFA required for local console access in addition to network access?","What happens if a user loses their MFA device — what is the recovery process, and does it bypass MFA?"]},
+
+  {id:"IA.L2-3.5.4",domain:"IA",domainFull:"Identification & Authentication",title:"Replay-Resistant Authentication",
+   statement:"Employ replay-resistant authentication mechanisms for network access to privileged and non-privileged accounts.",
+   plain:"Replay attacks capture valid authentication credentials and reuse them later. NTLM authentication, for example, is vulnerable to pass-the-hash attacks where captured hashes can be replayed. Replay-resistant mechanisms use time-bound, challenge-response, or one-time tokens that are useless after initial use. Kerberos, PKI certificates, TOTP-based MFA, and TLS mutual authentication all provide replay resistance.",
+   evidence:["Authentication protocol documentation confirming Kerberos, TLS, or OTP-based mechanisms","Prohibition of NTLM authentication or remediation plan if still in use","MFA solution documentation confirming time-based or challenge-response tokens","Network analysis or protocol documentation showing replay resistance","Penetration test results validating authentication replay resistance"],
+   questions:["What authentication protocols are in use, and how do they protect against replay attacks?","Is NTLM authentication still used anywhere in your environment? If so, what is the plan to eliminate it?","How do your MFA tokens prevent replay — are they time-based (TOTP) or challenge-based?","Has a penetration test confirmed that your authentication systems are resistant to replay and pass-the-hash attacks?"]},
+
+  {id:"IA.L2-3.5.5",domain:"IA",domainFull:"Identification & Authentication",title:"Identifier Reuse",
+   statement:"Disable identifiers after a defined inactivity period.",
+   plain:"User accounts that haven't been used in a defined period should be disabled. Dormant accounts are a security risk because they may be forgotten, never receive password resets, and could be compromised and used without anyone noticing unusual activity. Defining an inactivity threshold (commonly 30, 60, or 90 days), automatically disabling dormant accounts, and reviewing them regularly is required.",
+   evidence:["Policy defining inactivity threshold for account disablement","Automated account inactivity scanning and disablement process documentation","Report of accounts disabled due to inactivity in the last review cycle","Active Directory configuration showing last logon monitoring","Regular access review records including dormant account identification"],
+   questions:["What is your defined inactivity period before an account is disabled?","How is dormant account detection automated — manual review or automated tooling?","Can you show me accounts that were disabled in the last cycle due to inactivity?","How do you handle service accounts that may not log in frequently but are still needed?"]},
+
+  {id:"IA.L2-3.5.6",domain:"IA",domainFull:"Identification & Authentication",title:"Identifier Handling",
+   statement:"Manage information system identifiers by receiving authorization before using the identifier, preventing reuse of identifiers for a defined period, and disabling the identifier after a defined period of inactivity.",
+   plain:"User IDs must be managed through their full lifecycle: authorized before creation, unique, never reused for a defined period after an account is terminated, and disabled when dormant. Identifier reuse is a risk because a new employee given a former employee's username might inherit permissions, audit trail confusion, or access to archived data associated with that identifier.",
+   evidence:["Account provisioning workflow showing authorization before account creation","Policy defining the identifier reuse prevention period (e.g., 2 years)","Evidence that former employee IDs are not immediately reused","Account lifecycle documentation covering creation, modification, and termination","Audit trail showing identifier history and reuse prevention enforcement"],
+   questions:["What is your policy for preventing reuse of a deactivated user identifier — how long before an ID can be reused?","How is identifier reuse technically prevented in your Active Directory or IdP?","What authorization is required before a new user account is created?","How do you handle the account lifecycle when an employee leaves — what happens to their identifier?"]},
+
+  {id:"IA.L2-3.5.7",domain:"IA",domainFull:"Identification & Authentication",title:"Password Complexity",
+   statement:"Enforce a minimum password complexity and change requirements for systems that use password-based authentication.",
+   plain:"Passwords must meet minimum complexity requirements — length, character types, and avoidance of common/compromised passwords. NIST SP 800-63B has updated guidance favoring length over complexity rules, and recommends checking passwords against known breach lists rather than forcing arbitrary rotations. Your policy must balance security with usability — forcing frequent changes with complexity rules often leads to weaker passwords, not stronger ones.",
+   evidence:["Password policy documentation defining complexity requirements and change rules","Technical enforcement of password policy in Active Directory or IdP","Evidence of integration with compromised password databases (HaveIBeenPwned or equivalent)","FGPP (Fine-Grained Password Policy) documentation for privileged accounts","Password policy compliance reporting showing enforcement rates"],
+   questions:["What are your password complexity requirements, and how are they technically enforced?","Do you check passwords against known breach/compromise lists when users set new passwords?","How do your password requirements differ between standard users and privileged accounts?","How do you handle legacy systems that cannot enforce your current password policy?"]},
+
+  {id:"IA.L2-3.5.8",domain:"IA",domainFull:"Identification & Authentication",title:"Password Reuse",
+   statement:"Prohibit password reuse for a specified number of generations.",
+   plain:"Users must not be able to cycle back to a previous password. If someone is required to change their password and immediately sets it back to the old one, the change was meaningless. Password history enforcement (remembering the last N passwords) prevents this. The number of password generations to remember should be defined in policy and technically enforced — typically the last 12-24 passwords.",
+   evidence:["Password policy showing password history enforcement setting","Active Directory Group Policy or IdP configuration confirming history is enforced","Policy documentation specifying the number of password generations prohibited","Testing evidence showing the system rejects previously used passwords","Fine-grained password policy for privileged accounts with potentially stricter history requirements"],
+   questions:["How many previous passwords does your system remember and prevent reuse of?","How is password history enforcement configured — through Active Directory Group Policy, an IdP, or individual application settings?","Is password history consistently enforced across all applications that use password authentication for CUI systems?","How do you handle the case where a user tries to work around the history requirement by rapidly changing their password multiple times?"]},
+
+  {id:"IA.L2-3.5.9",domain:"IA",domainFull:"Identification & Authentication",title:"Temporary Passwords",
+   statement:"Allow temporary passwords to be used immediately for system logons with an immediate change to a permanent password.",
+   plain:"When a temporary password is issued — for a new account, a password reset, or emergency access — the user must be forced to change it immediately upon first login. A temporary password that can be used indefinitely is nearly as risky as a shared password. The system must technically enforce the immediate change and not allow the temporary credential to be used for normal operations.",
+   evidence:["Technical configuration showing 'must change password at next logon' is enforced for temporary credentials","Help desk process documentation for temporary password issuance","Evidence that temporary passwords have limited validity period","Audit logs showing forced password changes upon first use of temporary credentials","Policy requiring immediate change of temporary passwords"],
+   questions:["What is the process for issuing temporary passwords, and how is an immediate change enforced technically?","Can a temporary password be used more than once, or does the system force a change on first login?","How long are temporary passwords valid before they expire if not used?","How are temporary passwords communicated to users securely?"]},
+
+  {id:"IA.L2-3.5.10",domain:"IA",domainFull:"Identification & Authentication",title:"Cryptographically-Protected Passwords",
+   statement:"Store and transmit only cryptographically-protected passwords.",
+   plain:"Passwords must never be stored in plain text or transmitted unencrypted. At rest, passwords must be hashed using modern, slow hashing algorithms (bcrypt, Argon2, PBKDF2 with high iteration counts). MD5 and SHA-1 are no longer acceptable for password hashing. In transit, passwords must be protected by TLS. If an attacker obtains your password database, they should not be able to recover the passwords in a reasonable timeframe.",
+   evidence:["Authentication system documentation confirming cryptographic password storage (hashing algorithm used)","Evidence that legacy plain-text or weakly-hashed password stores have been eliminated","TLS enforcement for all authentication endpoints (certificate and protocol version)","Application security testing results confirming proper password hashing","Prohibition of MD5 or SHA-1 password hashing in security standards"],
+   questions:["What hashing algorithm is used to store passwords in your authentication systems?","Are there any systems that store passwords in plain text or with weak hashing (MD5, SHA-1)?","How do you verify that all authentication traffic is protected by TLS and not susceptible to interception?","Has a penetration test or application security assessment validated your password storage and transmission security?"]},
+
+  {id:"IA.L2-3.5.11",domain:"IA",domainFull:"Identification & Authentication",title:"Obscure Feedback",
+   statement:"Obscure feedback of authentication information during the authentication process to protect the information from possible exploitation/use by unauthorized individuals.",
+   plain:"When a user types their password, it should not be displayed on screen. Password masking (showing dots or asterisks instead of characters) is the standard implementation. This protects against shoulder surfing and screen capture. This applies not just to web login pages but to any authentication interface — local login screens, remote access portals, command-line authentication prompts, and application login forms.",
+   evidence:["Technical demonstration that password fields are masked in all authentication interfaces","Application security review confirming password masking on web and desktop applications","Evidence that authentication failures do not reveal whether the username or password was wrong (generic error message)","Mobile application security review confirming password masking on mobile login screens","Policy requiring obscured password feedback in application development standards"],
+   questions:["How do you ensure that authentication interfaces mask password input — is this reviewed as part of application security testing?","Are there any systems where passwords or authentication tokens are displayed in clear text during entry?","Do authentication failure messages distinguish between invalid username and invalid password — they should not?","How is this requirement incorporated into your application development and vendor assessment processes?"]},
+
+  // ── INCIDENT RESPONSE (IR) ────────────────────────────────────────────────
+  {id:"IR.L2-3.6.1",domain:"IR",domainFull:"Incident Response",title:"Incident Response Capability",
+   statement:"Establish an operational incident-handling capability for organizational systems that includes preparation, detection, analysis, containment, recovery, and user activities.",
+   plain:"When something goes wrong, you can't improvise. You need a documented, tested incident response capability covering the full lifecycle: preparation (planning, tooling, training), detection (monitoring, alerting), analysis (triage, root cause), containment (isolating affected systems), recovery (restoring operations), and post-incident review (learning lessons). A document nobody has read doesn't count as capability.",
+   evidence:["Incident Response Plan (IRP) with version history and approval signatures","Incident response roles and responsibilities (RACI matrix)","Records of IR tabletop exercises or simulations with dates and participants","Incident ticket log showing the process was followed on real events","Post-incident review reports (lessons learned documentation)"],
+   questions:["Walk me through your incident response process from the moment an alert fires to after the incident is closed.","When was the incident response plan last tested — tabletop, live drill, or simulation — and what were the findings?","Who has authority to declare an incident and initiate containment actions?","How do you determine when a security event becomes a reportable incident under your government contracts?"]},
+
+  {id:"IR.L2-3.6.2",domain:"IR",domainFull:"Incident Response",title:"Incident Reporting",
+   statement:"Track, document, and report incidents to designated officials and/or authorities both internal and external to the organization.",
+   plain:"Incidents must be documented and reported — internally to management and security leadership, and externally to the appropriate authorities (such as the DIB CS Program for defense contractors, or CISA for critical infrastructure). Reporting timelines are often specified in contracts (e.g., 72 hours for certain incidents). Missing a reporting deadline can have serious contractual and regulatory consequences.",
+   evidence:["Incident reporting policy with internal and external reporting requirements and timelines","Incident log or ticketing system showing documented incident records","Evidence of external incident reports submitted (redacted if necessary)","Escalation tree or contact list for internal and external reporting","Training records covering incident reporting obligations"],
+   questions:["What are your incident reporting timelines and to whom — both internally and externally?","Can you show me records of incidents that were documented and reported in the last year?","How do you ensure that reporting timelines are met — is there an automated reminder or escalation process?","How do you determine the scope of reporting for incidents that may involve CUI — what thresholds trigger external notification?"]},
+
+  {id:"IR.L2-3.6.3",domain:"IR",domainFull:"Incident Response",title:"Incident Response Testing",
+   statement:"Test the organizational incident response capability.",
+   plain:"Your incident response plan must be tested, not just written. Tabletop exercises, simulations, and full live drills all count. The goal is to verify that people know their roles, that tools work as expected, and that the plan reflects current reality. Gaps discovered during testing — in communications, decision authority, tool access, or coordination — are better found during a drill than during an actual breach.",
+   evidence:["Tabletop exercise records with scenario description, participants, date, and findings","After-action reports from IR tests documenting gaps and remediation actions","Evidence that tabletop findings were tracked to resolution","Annual IR test schedule demonstrating regular testing cadence","Communication test records verifying notification trees function correctly"],
+   questions:["When was the last incident response test conducted, what was the scenario, and who participated?","What gaps or deficiencies were identified in the last IR test, and have they been remediated?","How do you test not just the plan but the tools — can your team demonstrate they can use forensic and containment tools under pressure?","How do you include third-party responders or external contacts in your IR testing?"]},
+
+  // ── MAINTENANCE (MA) ──────────────────────────────────────────────────────
+  {id:"MA.L2-3.7.1",domain:"MA",domainFull:"Maintenance",title:"Perform Maintenance",
+   statement:"Perform maintenance on organizational systems.",
+   plain:"Systems require regular maintenance — hardware checks, software updates, firmware patching, and scheduled servicing. This control requires that maintenance is actually performed and documented. Deferred maintenance accumulates technical debt and security risk. Scheduled maintenance windows should be planned, approved, and recorded, and maintenance activities should be logged.",
+   evidence:["Maintenance schedule documentation for CUI systems","Maintenance activity records (work orders, tickets, change records)","Patch management records showing scheduled maintenance applied","Hardware maintenance contracts with vendors if applicable","Evidence of preventive maintenance being performed vs. just reactive break/fix"],
+   questions:["What is your maintenance schedule for CUI systems, and how is it documented?","How are maintenance activities logged and tracked to completion?","What is the process for scheduling maintenance windows — who approves them?","How do you handle situations where systems cannot be taken offline for maintenance — are there compensating controls?"]},
+
+  {id:"MA.L2-3.7.2",domain:"MA",domainFull:"Maintenance",title:"System Maintenance Controls",
+   statement:"Provide controls on the tools, techniques, mechanisms, and personnel that perform maintenance on organizational systems.",
+   plain:"Maintenance personnel and tools need oversight and controls. Maintenance access can be just as dangerous as regular administrative access. Maintenance technicians — including vendor representatives — should be authenticated before being granted access, their activities should be monitored, and any maintenance tools brought in should be inspected. Uncontrolled maintenance access is a vector for insider threat and supply chain attacks.",
+   evidence:["Maintenance access policy requiring authentication and authorization before access is granted","Escort policy for external maintenance personnel","Maintenance activity logging showing who performed what maintenance and when","Inspection process for maintenance tools and equipment brought onto premises","Vendor maintenance access authorization records"],
+   questions:["How are external maintenance personnel authenticated before they are granted access to CUI systems?","Are external maintenance technicians escorted during their activities on-site?","How are maintenance tools and equipment inspected before being connected to or used on CUI systems?","Are maintenance activities by external personnel logged, and does someone monitor what they are doing?"]},
+
+  {id:"MA.L2-3.7.3",domain:"MA",domainFull:"Maintenance",title:"Equipment Sanitization",
+   statement:"Ensure equipment removed for maintenance is sanitized with respect to any CUI.",
+   plain:"When hardware is removed from a CUI environment for off-site maintenance — sent to a vendor, shipped to a repair depot, or taken off premises — it must first be sanitized of any CUI. This means either removing storage media, wiping data, or ensuring the equipment contains no CUI before it leaves your control. You cannot ship a hard drive containing CUI to a vendor without authorization and proper handling.",
+   evidence:["Policy requiring CUI sanitization before equipment leaves controlled space","Sanitization records for equipment removed for maintenance","Evidence of media removal or wiping before off-site maintenance","Vendor maintenance agreement including data handling requirements","Tracking log of equipment sent off-site with sanitization confirmation"],
+   questions:["What is the process when a CUI system needs to be sent off-site for maintenance or repair?","How do you ensure that CUI is removed or sanitized from equipment before it leaves your facility?","Do you remove hard drives before sending equipment to a vendor? If so, how are those drives tracked?","What contractual requirements apply to vendors regarding any CUI they may encounter during maintenance?"]},
+
+  {id:"MA.L2-3.7.4",domain:"MA",domainFull:"Maintenance",title:"Media Inspection",
+   statement:"Check media containing maintenance programs and diagnostic programs for malicious code before use in systems containing CUI.",
+   plain:"Any media — USB drives, CDs, network locations — that brings maintenance software, diagnostic tools, or firmware updates into your CUI environment must be scanned for malware before use. A compromised diagnostic tool is a classic supply chain attack vector. This applies to vendor-provided tools, contractor tools, and even internally generated maintenance media that has been stored off-site.",
+   evidence:["Policy requiring malware scanning of maintenance media before use","Scanning process documentation and AV scan logs for maintenance media","Evidence that this applies to vendor-provided media as well as internal media","Air-gapped network procedures for scanning media before transfer","Records of maintenance media inspection for recent maintenance activities"],
+   questions:["What is your process for scanning maintenance media — USB drives, downloaded tools, vendor-provided software — before using it on CUI systems?","How do you handle maintenance tools that need to be brought in by external vendors?","How do you scan maintenance media in an air-gapped or OOB environment where the scanner cannot connect to update servers?","Has maintenance media inspection ever identified malicious code? How was it handled?"]},
+
+  {id:"MA.L2-3.7.5",domain:"MA",domainFull:"Maintenance",title:"Nonlocal Maintenance",
+   statement:"Require MFA for remote maintenance sessions, maintain records of nonlocal maintenance and diagnostic activities, terminate remote connections when done, and supervise nonlocal maintenance activities.",
+   plain:"Remote maintenance — when a vendor or administrator connects remotely to perform maintenance on a CUI system — requires strong authentication (MFA), must be logged in detail, and the session must be terminated when complete. Remote sessions should not be left open indefinitely. Ideally, someone should be supervising or monitoring the session. Jump servers and PAM tools are common implementations for this control.",
+   evidence:["MFA enforcement for remote maintenance sessions (VPN + jump server configuration)","Remote maintenance session logs showing user, duration, and activities performed","Session recording evidence for remote maintenance if applicable","Policy requiring session termination after maintenance completion","Evidence that remote maintenance accounts are disabled or inactive when not in use"],
+   questions:["How are remote maintenance sessions authenticated — is MFA required?","Are remote maintenance sessions logged and recorded — does that include session recording or just connection metadata?","Who is responsible for supervising a remote maintenance session by a vendor, and how is supervision documented?","How are remote maintenance connections terminated after work is complete — is there a formal process?"]},
+
+  {id:"MA.L2-3.7.6",domain:"MA",domainFull:"Maintenance",title:"Maintenance Personnel",
+   statement:"Ensure that maintenance personnel have required access authorization.",
+   plain:"People performing maintenance on CUI systems must be authorized to do so — just like regular users. This means vetting maintenance personnel, verifying their clearance or authorization if required, and ensuring they only access what is needed for their maintenance task. Contractors and vendor technicians performing maintenance are subject to the same authorization requirements as employees.",
+   evidence:["Maintenance personnel authorization records showing vetting process","Background investigation records for internal maintenance staff","Vendor agreement specifying personnel screening requirements","Escort procedures for personnel without full authorization to CUI areas","Access authorization log for maintenance personnel tied to specific tasks"],
+   questions:["How are maintenance personnel — both internal and external — vetted and authorized before accessing CUI systems?","What background investigation requirements apply to contractors or vendors who perform maintenance?","How do you handle a situation where a vendor sends a different technician than expected — what is the verification process?","Are maintenance personnel granted only the access needed for their specific task, or do they receive broad system access?"]},
+
+  // ── MEDIA PROTECTION (MP) ─────────────────────────────────────────────────
+  {id:"MP.L1-3.8.1",domain:"MP",domainFull:"Media Protection",title:"Media Protection",
+   statement:"Protect system media containing Federal Contract Information, both paper and digital.",
+   plain:"Physical and digital media containing CUI must be protected from unauthorized access. Paper documents with CUI should be stored in locked cabinets when not in use. Digital media should be access-controlled. Both types should be handled in a way that prevents unauthorized viewing, copying, or removal. This is about the physical security of the media itself, not just the systems that process the data.",
+   evidence:["Media protection policy covering both paper and digital media","Physical storage controls for paper CUI (locked cabinets, secure rooms)","Digital media access controls and storage location documentation","Physical access logs for areas where CUI media is stored","Visitor control procedures preventing unauthorized access to areas with CUI media"],
+   questions:["How is paper CUI protected when not in active use — locked storage, clean desk policy?","What physical controls protect digital storage media (drives, backup tapes) containing CUI?","How do you control who can access areas where CUI media is stored?","What is the procedure when CUI media needs to be transported between locations?"]},
+
+  {id:"MP.L1-3.8.2",domain:"MP",domainFull:"Media Protection",title:"Media Access",
+   statement:"Limit access to system media containing Federal Contract Information to authorized individuals.",
+   plain:"Only authorized individuals should have access to media that contains CUI — whether that's paper files, USB drives, backup tapes, or drives in a server rack. Access should be controlled, tracked, and limited to the minimum necessary. This requires both physical access controls (locked rooms, cabinets) and logical controls (encrypted drives requiring authentication).",
+   evidence:["Access control list for personnel authorized to access CUI media","Physical access logs for storage areas","Media checkout/check-in procedures for removable media","Digital media access logs (who accessed which encrypted drive or backup)","Evidence of periodic review of authorized media access list"],
+   questions:["Who is authorized to access CUI media, and how is that list maintained and reviewed?","How do you physically control access to media storage areas — badge readers, locked cabinets, other?","Is there a check-out/check-in process for removable media containing CUI?","How would you know if unauthorized media access occurred — what logging or detection is in place?"]},
+
+  {id:"MP.L1-3.8.3",domain:"MP",domainFull:"Media Protection",title:"Sanitize or Destroy Media",
+   statement:"Sanitize or destroy information system media before disposal or reuse.",
+   plain:"Before any storage media leaves your control — recycled, given to another employee, donated, or discarded — it must be sanitized or destroyed. Deleting files is not sufficient. NIST SP 800-88 defines clearing (overwriting), purging (degaussing or cryptographic erase), and destruction (physical) as the three options depending on media type and sensitivity. SSDs and flash media require special handling because of wear leveling.",
+   evidence:["Media sanitization policy referencing NIST SP 800-88 or equivalent","Media disposal/sanitization logs with asset tag, method, date, and responsible party","Certificate of destruction from third-party vendor if applicable","Sanitization tool logs (DBAN, Blancco, or manufacturer secure erase)","Asset inventory reconciliation showing disposed items removed from tracking"],
+   questions:["What sanitization standard do you follow, and why was it selected?","What is the step-by-step process when a drive or device is being decommissioned?","How do you handle SSDs and flash storage that are difficult to reliably overwrite?","Can you produce the destruction or sanitization records for the last 10 assets disposed of?"]},
+
+  {id:"MP.L2-3.8.4",domain:"MP",domainFull:"Media Protection",title:"Media Markings",
+   statement:"Mark media with necessary CUI markings and distribution limitations.",
+   plain:"Physical media — drives, tapes, CDs, USB drives, printed documents — that contains CUI must be visibly marked to indicate its sensitivity and any distribution limitations. Markings help ensure media is handled appropriately throughout its lifecycle, from creation to disposal. Unmarked CUI media is frequently mishandled simply because people don't know what's on it.",
+   evidence:["Media marking policy defining required markings for different CUI categories","Physical examples of marked media (drives with CUI labels, printed documents with headers/footers)","Procedure for applying CUI markings at time of creation","Training records covering media marking requirements","Audit of media in storage confirming appropriate markings are present"],
+   questions:["How is physical media marked when it contains CUI — labels, stamps, printed markings?","Who is responsible for applying CUI markings, and at what point in the process are markings applied?","How do you ensure that markings are applied consistently and accurately by all personnel?","What happens when media is sanitized and repurposed — how are old markings removed or updated?"]},
+
+  {id:"MP.L2-3.8.5",domain:"MP",domainFull:"Media Protection",title:"Media Accountability",
+   statement:"Control access to media containing CUI and maintain accountability for media during transport until the media is destroyed or sanitized.",
+   plain:"There must be a chain of custody for media containing CUI from the moment it is created until it is sanitized or destroyed. This means maintaining a media inventory, logging who has custody of each piece of media, and tracking it during transport. If media goes missing, you must be able to determine what was on it, who had it, and where it was last seen.",
+   evidence:["Media inventory log with custody tracking for all CUI media","Chain of custody documentation for media in transport","Periodic media inventory audits confirming all media is accounted for","Shipping/transport records for media sent off-site","Missing media incident records if any media has been lost or unaccounted for"],
+   questions:["How do you track the location and custody of media containing CUI throughout its lifecycle?","What is the process when media needs to be transported — what documentation accompanies it?","How frequently do you audit your media inventory to confirm all media is accounted for?","What happened the last time media could not be immediately located — what was the response process?"]},
+
+  {id:"MP.L2-3.8.6",domain:"MP",domainFull:"Media Protection",title:"Portable Storage Encryption",
+   statement:"Implement cryptographic mechanisms to protect the confidentiality of CUI during transport unless otherwise protected by alternative physical safeguards.",
+   plain:"When CUI is transported on portable media — USB drives, external drives, laptops, backup tapes — it must be encrypted. If the media is lost or stolen in transit, encryption prevents the CUI from being accessed. Hardware-encrypted drives or software encryption (BitLocker To Go, VeraCrypt) are common implementations. Pre-shared key solutions where everyone uses the same password are not acceptable.",
+   evidence:["Encryption requirement for portable media in policy documentation","Hardware-encrypted drive inventory or software encryption deployment records","Encryption key management documentation for portable media","Evidence that portable media leaving the facility is verified to be encrypted","Training records covering portable media encryption requirements"],
+   questions:["What encryption solution is used for portable storage devices carrying CUI?","How do you verify that a drive is encrypted before it leaves the facility?","How is encryption key management handled — what happens if the key is lost?","Are there any exceptions to the portable storage encryption requirement? If so, what alternative safeguards are in place?"]},
+
+  {id:"MP.L2-3.8.7",domain:"MP",domainFull:"Media Protection",title:"Removable Media",
+   statement:"Control the use of removable media on system components.",
+   plain:"Removable media (USB drives, external hard drives, SD cards, optical media) represents a significant data exfiltration and malware introduction risk. Use of removable media on CUI systems should be restricted to authorized media for authorized purposes. Technical controls — not just policy — should restrict which removable media can be used and by whom.",
+   evidence:["Removable media policy defining authorization requirements","Technical controls restricting removable media use (GPO USB restrictions, endpoint agent)","Authorized removable media inventory with device IDs or serial numbers","Audit logs of removable media insertion events on CUI systems","Evidence of scanning removable media before use on CUI systems"],
+   questions:["What technical controls restrict use of unauthorized removable media on CUI systems?","Is there a process for authorizing specific removable media devices — by serial number, certificate, or other identifier?","How do you detect unauthorized removable media insertion attempts?","What happens when someone plugs in unauthorized removable media — is it blocked, logged, or both?"]},
+
+  {id:"MP.L2-3.8.8",domain:"MP",domainFull:"Media Protection",title:"Shared Media",
+   statement:"Prohibit the use of portable storage devices when such devices have no identifiable owner.",
+   plain:"Media of unknown origin — USB drives found in a parking lot, drives left by a departing employee without documentation, or media that cannot be traced to an authorized owner — must not be used on CUI systems. Unidentifiable media is a significant malware vector (the 'lost USB' attack is a real and effective social engineering technique). If you can't verify where it came from, it doesn't get plugged in.",
+   evidence:["Policy prohibiting use of media without identifiable owner","Training records covering the risks of unknown media","Media inventory system showing ownership assignment for all authorized media","Incident records if unauthorized media was found or used","Technical controls blocking media without authorized device identifiers"],
+   questions:["What is your policy regarding removable media of unknown origin — is it explicitly prohibited?","How are personnel trained to handle found or unidentified removable media?","What is the procedure when an employee finds a USB drive or other media with no clear owner?","How do you technically enforce ownership requirements — are only registered/authorized devices permitted?"]},
+
+  {id:"MP.L2-3.8.9",domain:"MP",domainFull:"Media Protection",title:"Protect Backups",
+   statement:"Protect the confidentiality of backup CUI at storage locations.",
+   plain:"Backup media and backup data stores are often overlooked in security programs, but they contain the same CUI as your primary systems — sometimes more, because backups may retain historical data that was deleted from production. Backup tapes, cloud backup repositories, and backup server storage must have the same protections (encryption, access controls, physical security) as primary CUI systems.",
+   evidence:["Backup encryption configuration and documentation","Physical or logical access controls on backup storage locations","Off-site backup transport and storage security documentation","Backup access control list showing only authorized personnel have access","Evidence that backup restores require authentication and authorization"],
+   questions:["How are backups encrypted — at the application level, storage level, or both?","Who has access to backup storage, and how is that access controlled and audited?","How are backup tapes or off-site backup repositories protected during transport and at the storage facility?","When was the last time backup access was reviewed to ensure only currently authorized personnel have access?"]},
+
+  // ── PERSONNEL SECURITY (PS) ───────────────────────────────────────────────
+  {id:"PS.L2-3.9.1",domain:"PS",domainFull:"Personnel Security",title:"Screen Individuals",
+   statement:"Screen individuals prior to authorizing access to organizational systems containing CUI.",
+   plain:"Before granting someone access to CUI systems, you must screen them. For government contractors, this typically means background investigations appropriate to the level of access being granted. Screening must occur before access is granted — not after. This applies to employees, contractors, and any other individuals who will have access to CUI systems.",
+   evidence:["Personnel screening policy defining screening requirements by access level","Background investigation records for current personnel with CUI access","Evidence that screening is completed before access is granted (not concurrent)","Contractor and vendor personnel screening requirements in contracts","Periodic rescreening records if applicable for long-tenured personnel"],
+   questions:["What screening requirements apply to individuals before they receive access to CUI systems?","How do you ensure that access is not granted until screening is complete?","What are the screening requirements for contractors and temporary workers with CUI access?","How do you handle a situation where screening results in a disqualifying finding — is there an adjudication process?"]},
+
+  {id:"PS.L2-3.9.2",domain:"PS",domainFull:"Personnel Security",title:"Termination & Transfer",
+   statement:"Ensure that CUI and CUI systems are protected during and after personnel actions such as terminations and transfers.",
+   plain:"When an employee leaves or changes roles, their access must be promptly revoked. This includes all system accounts, physical access credentials, shared secrets they may have known, and any CUI they had in their possession. Offboarding is a critical security control — many insider threat incidents involve employees whose access wasn't properly revoked. Transfer actions also require access to be reviewed and adjusted to the new role.",
+   evidence:["Offboarding checklist covering all access revocation steps","Timeliness records showing access was revoked promptly upon termination (within 24 hours ideally)","HR-IT notification process for terminations and transfers","Evidence of CUI and device return process during offboarding","Transfer records showing access was reviewed and adjusted to reflect new role"],
+   questions:["What is your offboarding process for access revocation, and how quickly is access terminated when an employee leaves?","How are you notified of terminations — is IT notified before, during, or after the employee's last day?","What happens to CUI in an employee's possession (email, files, physical documents) when they leave?","How do you handle access changes when an employee transfers to a role without CUI access requirements?"]},
+
+  // ── PHYSICAL PROTECTION (PE) ──────────────────────────────────────────────
+  {id:"PE.L1-3.10.1",domain:"PE",domainFull:"Physical Protection",title:"Limit Physical Access",
+   statement:"Limit physical access to organizational systems to authorized individuals.",
+   plain:"CUI systems, data centers, server rooms, and work areas where CUI is processed must be physically secured. Only authorized individuals should be able to physically access these areas. Badge readers, key pads, biometrics, or physical keys all work — the key is that access is controlled, not open to anyone who walks by. The server room must not double as the supply closet.",
+   evidence:["Physical access control system configuration (badge reader, key card, biometric)","Authorized access list for CUI processing areas","Physical access logs showing entry/exit records","Physical security audit or walk-through documentation","Evidence of periodic review and update of authorized physical access list"],
+   questions:["How is physical access to your CUI processing areas controlled — badge readers, key codes, other?","Who is on the authorized access list for your server rooms and CUI work areas, and when was it last reviewed?","How do you detect unauthorized physical access attempts?","What physical access controls apply outside of business hours when the facility is less occupied?"]},
+
+  {id:"PE.L1-3.10.2",domain:"PE",domainFull:"Physical Protection",title:"Monitor Facility",
+   statement:"Protect and monitor the physical facility and support infrastructure for organizational systems.",
+   plain:"Physical monitoring — security cameras, alarms, guards, and environmental sensors — must be in place to protect the facility and the infrastructure that supports CUI systems. This includes monitoring for unauthorized entry, physical damage, and environmental conditions (fire, flood, temperature) that could compromise systems. Monitoring must be active and reviewed, not just installed.",
+   evidence:["Physical security camera coverage documentation and locations","Alarm system configuration and monitoring records","Environmental monitoring (temperature, humidity, water detection) configuration","Physical security review or inspection records","Guard duty logs or security service contracts if applicable"],
+   questions:["What physical monitoring is in place for your data center and CUI processing areas — cameras, alarms, environmental sensors?","Are security cameras monitored in real-time or only reviewed after an incident?","How are environmental conditions (temperature, power, water) monitored, and who is alerted if thresholds are exceeded?","When was the last physical security inspection or audit conducted?"]},
+
+  {id:"PE.L1-3.10.3",domain:"PE",domainFull:"Physical Protection",title:"Escort Visitors",
+   statement:"Escort visitors and monitor visitor activity in areas housing CUI systems.",
+   plain:"Visitors — including vendors, contractors without full authorization, delivery personnel, and others who do not have a permanent authorized presence — must be escorted by an authorized individual when in areas where CUI is processed. Visitors should not be left unattended in server rooms, secure work areas, or anywhere they could access CUI systems or data.",
+   evidence:["Visitor policy requiring escort in CUI areas","Visitor log showing visitor identity, purpose, escort name, and time in/out","Physical access controls preventing unescorted visitor entry","Training records covering escort responsibilities for authorized employees","Evidence of visitor badge system distinguishing visitors from employees"],
+   questions:["What is your visitor policy for areas where CUI is processed — is escorting mandatory?","How are visitors identified and distinguished from employees — different badge colors, visitor badges?","How do you ensure that authorized employees understand their escort responsibilities?","What controls physically prevent a visitor from wandering into a CUI area unescorted?"]},
+
+  {id:"PE.L1-3.10.4",domain:"PE",domainFull:"Physical Protection",title:"Physical Access Logs",
+   statement:"Maintain audit logs of physical access.",
+   plain:"Electronic access control systems must log all entry and exit events for CUI areas — who entered, when, and (for some systems) where they went. These logs support incident investigation (was the right person physically present when a breach occurred?) and compliance auditing. Logs must be retained for a defined period and reviewed periodically.",
+   evidence:["Physical access control system log retention configuration","Sample physical access logs showing entry/exit records with timestamp and identity","Defined retention period for physical access logs in policy","Evidence of periodic physical access log review","Anomaly detection or alerting for after-hours or unusual physical access"],
+   questions:["What physical access control system is in use, and what information does it log for each access event?","How long are physical access logs retained?","How are physical access logs reviewed — periodically, on demand, or with automated alerting for anomalies?","How do physical access logs integrate with your security monitoring — can you correlate physical and logical access events?"]},
+
+  {id:"PE.L2-3.10.5",domain:"PE",domainFull:"Physical Protection",title:"Manage Physical Access",
+   statement:"Control and manage physical access devices.",
+   plain:"Physical access credentials — badge cards, key fobs, PIN codes, biometric enrollments — must be actively managed throughout their lifecycle. This means issuing them with authorization, revoking them promptly when no longer needed (terminated employee, lost badge), auditing who has what credentials, and replacing compromised access devices immediately. A lost badge that stays active is a physical security hole.",
+   evidence:["Physical access credential inventory and assignment records","Revocation process documentation and evidence of timely revocation upon termination","Lost/stolen badge reporting and revocation procedure","Periodic audit of active physical credentials vs. current authorized personnel","Credential issuance authorization process documentation"],
+   questions:["What is the process for issuing physical access credentials — who authorizes them?","How quickly are physical access credentials revoked when an employee is terminated or a badge is reported lost?","How often do you audit your physical access credential inventory to verify it matches current authorized personnel?","What happens when a credential is reported stolen — is it immediately deactivated, and is the incident documented?"]},
+
+  {id:"PE.L2-3.10.6",domain:"PE",domainFull:"Physical Protection",title:"Alternative Work Sites",
+   statement:"Enforce safeguards to protect CUI at alternate work sites.",
+   plain:"If employees work remotely — from home, hotels, or other locations — and access or handle CUI there, the same security requirements apply. Home offices aren't as secure as corporate facilities, but there must be a baseline: encrypted laptops, VPN, a requirement not to print CUI at home, a clean workspace free from unauthorized individuals, etc. Telework policies must address CUI protection specifically.",
+   evidence:["Telework/remote work policy addressing CUI handling requirements","Security requirements for home office environments (VPN, encryption, clean area)","Evidence employees acknowledged remote work security requirements","MDM enrollment and compliance evidence for remote worker devices","Training records covering CUI protection at alternate work sites"],
+   questions:["What security requirements apply to employees who work remotely and access CUI?","How do you enforce security requirements at home offices — are they technically enforced or policy-only?","Are remote workers allowed to print CUI at home, and if so, what requirements govern that?","How do you ensure that unauthorized individuals (family members, housemates) cannot access CUI when an employee is working remotely?"]},
+
+  // ── RISK ASSESSMENT (RA) ──────────────────────────────────────────────────
+  {id:"RA.L2-3.11.1",domain:"RA",domainFull:"Risk Assessment",title:"Risk Assessments",
+   statement:"Periodically assess the risk to organizational operations, organizational assets, and individuals, resulting from the operation of organizational systems and the associated processing, storage, or transmission of CUI.",
+   plain:"Risk must be formally assessed on a regular basis — not just assumed or intuited. A risk assessment identifies threats, vulnerabilities, likelihood, and impact, and produces a prioritized view of what needs to be addressed. Risk assessments should feed your security investment decisions, your Plan of Action and Milestones (POA&M), and your System Security Plan. 'We did one three years ago' is not adequate.",
+   evidence:["Risk assessment methodology documentation","Completed risk assessments with date and scope","Risk register or risk tracking documentation","Evidence that risk assessment findings feed into remediation planning","Periodic risk assessment schedule showing regular cadence"],
+   questions:["When was your last formal risk assessment conducted, who performed it, and what was the scope?","What methodology do you use for risk assessment — NIST RMF, FAIR, or another framework?","How do risk assessment findings drive remediation priorities and resource allocation?","How often do you update your risk assessment — annually, or also after significant changes?"]},
+
+  {id:"RA.L2-3.11.2",domain:"RA",domainFull:"Risk Assessment",title:"Vulnerability Scan",
+   statement:"Scan for vulnerabilities in organizational systems and applications periodically and when new vulnerabilities potentially affecting those systems are identified.",
+   plain:"You must regularly scan your systems for known vulnerabilities — and scan again when significant new vulnerabilities are announced (like a critical CVE). Vulnerability scanning is not the same as penetration testing — scanners identify known vulnerabilities based on signatures. Both authenticated and unauthenticated scans should be run. Results must be acted on, not just filed away.",
+   evidence:["Vulnerability scanning tool configuration and scan schedule documentation","Recent vulnerability scan reports with findings for CUI systems","Evidence of out-of-cycle scanning when critical vulnerabilities are announced","Authenticated scan configuration evidence (scanner has credentials to perform deep scanning)","Scan result trend data showing remediation progress over time"],
+   questions:["How frequently do you conduct vulnerability scans of CUI systems, and what tool is used?","Are your scans authenticated — does the scanner log in with credentials to find locally-exploitable vulnerabilities?","How quickly do you scan after a critical vulnerability (like a major CVE) is publicly announced?","How are vulnerability scan findings tracked and remediated — what is the expected remediation timeline by severity?"]},
+
+  {id:"RA.L2-3.11.3",domain:"RA",domainFull:"Risk Assessment",title:"Vulnerability Remediation",
+   statement:"Remediate vulnerabilities in accordance with risk assessments.",
+   plain:"Finding vulnerabilities is only useful if you fix them. This control requires that vulnerabilities be remediated based on their risk level — critical vulnerabilities faster than low-risk ones. Remediation timelines should be defined in policy (e.g., critical in 15 days, high in 30 days) and tracked against those timelines. Unremediable vulnerabilities need compensating controls and risk acceptance documentation.",
+   evidence:["Vulnerability remediation policy with defined timelines by severity","Vulnerability tracking system showing open, in-progress, and closed findings","Evidence of timely remediation meeting defined SLAs","Exception/risk acceptance documentation for vulnerabilities that cannot be immediately remediated","Trend reports showing reduction of open vulnerability count over time"],
+   questions:["What are your defined remediation timelines for critical, high, medium, and low vulnerabilities?","How do you track open vulnerabilities to ensure they are remediated within required timeframes?","What happens when a critical vulnerability cannot be patched immediately — what compensating controls are implemented?","Can you show me a vulnerability from a recent scan and walk me through its remediation lifecycle?"]},
+
+  // ── SECURITY ASSESSMENT (CA) ──────────────────────────────────────────────
+  {id:"CA.L2-3.12.1",domain:"CA",domainFull:"Security Assessment",title:"Assess Security Controls",
+   statement:"Periodically assess the security controls in organizational systems to determine if the controls are effective in their application.",
+   plain:"You must regularly test and evaluate whether your security controls are actually working — not just documented. A policy that nobody follows, a firewall rule that's been misconfigured, or an MFA requirement with too many exceptions aren't effective controls even if they exist on paper. Security control assessments find the gap between what you say you do and what actually happens.",
+   evidence:["Security control assessment plan and schedule","Assessment reports documenting control effectiveness findings","Evidence that assessments are performed by someone independent of the control owners","Remediation tracking for control deficiencies identified in assessments","History of control assessments showing periodic cadence"],
+   questions:["How do you assess whether your documented security controls are actually effective and implemented correctly?","Who performs security control assessments — internal staff, or an independent third party?","When was the last control assessment performed, and what deficiencies were found?","How are control assessment findings tracked to remediation?"]},
+
+  {id:"CA.L2-3.12.2",domain:"CA",domainFull:"Security Assessment",title:"Plan of Action",
+   statement:"Develop and implement plans of action designed to correct deficiencies and reduce or eliminate vulnerabilities in organizational systems.",
+   plain:"When security weaknesses are found — through assessments, scans, audits, or self-discovery — they must be tracked in a Plan of Action and Milestones (POA&M). A POA&M documents the finding, the planned remediation, the responsible party, and the target completion date. It's a commitment to fix what's broken, not just acknowledge it. POA&Ms must be actively managed and updated.",
+   evidence:["POA&M document with all open findings, responsible parties, and target dates","Evidence of regular POA&M review and updates","Closed POA&M items with evidence of remediation","POA&M review meeting records or schedule","Integration of vulnerability scan findings and assessment findings into the POA&M"],
+   questions:["Can you show me your current POA&M — how many open items are there, and what are the oldest ones?","Who owns the POA&M process, and how often is it formally reviewed?","How do new findings from vulnerability scans and control assessments get added to the POA&M?","What happens when a POA&M target date is missed — is there an escalation process?"]},
+
+  {id:"CA.L2-3.12.3",domain:"CA",domainFull:"Security Assessment",title:"Monitor Security Controls",
+   statement:"Monitor security controls on an ongoing basis to ensure the continued effectiveness of the controls.",
+   plain:"Point-in-time assessments aren't enough — security controls must be monitored continuously or on a frequent ongoing basis to catch degradation, drift, or failure. Configuration drift, account creep, expired certificates, and disabled logging are examples of controls that can fail silently without ongoing monitoring. Continuous monitoring programs integrate automated tools, dashboards, and regular human review.",
+   evidence:["Continuous monitoring plan or program documentation","Automated monitoring tool deployment evidence (SIEM, vulnerability scanner, configuration compliance)","Regular monitoring reports or dashboards showing control health","Evidence that monitoring covers all key control categories","Monitoring findings log showing issues identified and remediated between formal assessments"],
+   questions:["What ongoing monitoring activities occur between formal assessments — automated scanning, log review, configuration compliance?","How do you detect when a security control has failed or degraded since the last formal assessment?","What is your continuous monitoring cadence — daily, weekly, monthly — for different control types?","Can you show me a recent monitoring finding that was identified and remediated between formal assessments?"]},
+
+  {id:"CA.L2-3.12.4",domain:"CA",domainFull:"Security Assessment",title:"System Security Plan",
+   statement:"Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements are implemented, and the relationships with or connections to other systems.",
+   plain:"Your environment must be documented in a System Security Plan (SSP). The SSP describes what systems you have, where CUI lives, how each security requirement is implemented or planned to be implemented, and how systems interconnect. The SSP is the foundational document for CMMC assessment — assessors use it as the starting point. An outdated or incomplete SSP is a major finding.",
+   evidence:["SSP document with current version and approval date","SSP coverage of all 110 CMMC Level 2 practices","System boundary and data flow diagrams referenced in the SSP","Interconnection documentation within the SSP","Evidence of periodic SSP review and update (at least annually or after significant changes)"],
+   questions:["Can I review your System Security Plan — when was it last updated and by whom?","Does the SSP cover your entire CUI environment, including all connected systems and third-party services?","How do you ensure the SSP stays current as your environment changes?","How do assessors or authorizing officials use your SSP — is it provided during the assessment process?"]},
+
+  // ── SYSTEM & COMMUNICATIONS PROTECTION (SC) ──────────────────────────────
+  {id:"SC.L1-3.13.1",domain:"SC",domainFull:"System & Comms Protection",title:"Boundary Protection",
+   statement:"Monitor, control, and protect communications at the external boundary of the system and at key internal boundaries within the system.",
+   plain:"Your network must have clearly defined boundaries, with controls at those boundaries — firewalls, intrusion detection systems, proxies — that monitor and control what crosses them. This applies to the external internet boundary and to internal boundaries between network segments. Communications crossing boundaries must be inspected and controlled, not just passed through.",
+   evidence:["Network architecture diagram showing external and internal boundary locations","Firewall ruleset documentation (or representative sample) for boundary devices","IDS/IPS configuration and alert logs at network boundaries","Boundary protection device configuration management documentation","Evidence of periodic firewall rule review"],
+   questions:["Show me your network architecture — where are your network boundaries, and what controls protect them?","How are firewall rules reviewed and maintained — how often, and by whom?","Is intrusion detection deployed at your network boundaries, and are alerts actively monitored?","How do you handle internal network segmentation — are CUI systems in a separate segment from general IT?"]},
+
+  {id:"SC.L2-3.13.2",domain:"SC",domainFull:"System & Comms Protection",title:"Security Engineering",
+   statement:"Employ architectural designs, software development techniques, and systems engineering principles that promote effective information security within organizational systems.",
+   plain:"Security must be designed in from the start, not bolted on afterward. This means applying secure design principles when building or acquiring systems: defense in depth, fail-safe defaults, least privilege built into the architecture, security requirements in procurement, and security reviews during development. 'We'll add security later' results in much harder-to-fix problems.",
+   evidence:["System design documentation showing security requirements integration","Secure design principles or standards referenced in architecture documentation","Security review gate in the system development lifecycle (SDLC)","Procurement requirements documentation including security requirements for vendors","Evidence of security architecture review for major system changes or acquisitions"],
+   questions:["How is security incorporated into your system design and procurement processes — is there a security architecture review?","What secure design principles guide your architecture decisions — defense in depth, zero trust, fail-safe?","How are security requirements specified when procuring new systems or services?","Can you walk me through a recent system acquisition or major change and how security was incorporated from the start?"]},
+
+  {id:"SC.L2-3.13.3",domain:"SC",domainFull:"System & Comms Protection",title:"Role Separation",
+   statement:"Separate user functionality from system management functionality.",
+   plain:"Users doing their job work should not be in the same session, interface, or network context as system administration functions. Admin interfaces should be on separate management networks or accessible only from designated administrative workstations. User-facing functionality (the production application) should be architecturally separate from administration consoles and management interfaces.",
+   evidence:["Network architecture documentation showing management network separation","Administrative interfaces accessible only from designated admin workstations or jump servers","Evidence that user-facing applications do not expose admin functionality to regular users","Role-based access configuration in applications separating user and admin functions","Documented policy requiring separate sessions for user work and administrative tasks"],
+   questions:["How is administrative functionality separated from user functionality in your environment — at the network level, application level, or both?","Can a regular user access administrative interfaces or management consoles of CUI systems?","Are administrative management interfaces on a separate network segment inaccessible from the user network?","How do administrators access management interfaces — jump server, dedicated workstation, VPN to a management network?"]},
+
+  {id:"SC.L2-3.13.4",domain:"SC",domainFull:"System & Comms Protection",title:"Shared Resource Control",
+   statement:"Prevent unauthorized and unintended information transfer via shared system resources.",
+   plain:"When systems share resources — memory, disk, processing, network buffers — one user or process shouldn't be able to read data left behind by another. Shared memory exploitation, cache-based side-channel attacks, and residual data in shared storage are all risks. This requires OS-level controls, proper application isolation, and ensuring data is cleared from shared resources between users or sessions.",
+   evidence:["Operating system configuration documentation showing process and memory isolation","Evidence of disk space clearing/zeroing on shared storage","Hypervisor configuration showing VM isolation controls","Application documentation confirming user sessions are isolated from each other","Security testing evidence for shared resource attacks (side channels, residual data)"],
+   questions:["How does your environment prevent one user or process from accessing data in shared resources left by another?","What hypervisor controls isolate VMs from each other in shared infrastructure?","How do you ensure that cleared disk space doesn't contain residual CUI accessible to subsequent users?","Have shared resource isolation mechanisms been included in security testing or penetration testing?"]},
+
+  {id:"SC.L2-3.13.5",domain:"SC",domainFull:"System & Comms Protection",title:"Public-Access System Separation",
+   statement:"Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.",
+   plain:"Any system component that faces the internet must live in a DMZ — isolated from your internal CUI network. If an attacker compromises your public-facing web server, they should not have a direct path to your internal CUI systems. The DMZ acts as a buffer zone. Firewall rules between the DMZ and internal network must be strictly limited to only necessary communications.",
+   evidence:["Network architecture diagram showing DMZ and internal network segmentation","Firewall rules confirming restricted traffic between DMZ and internal CUI networks","Evidence that public-facing systems do not store or directly process CUI","Penetration test results validating DMZ segmentation effectiveness","VLAN or physical network segmentation configuration documentation"],
+   questions:["Show me your network diagram — where are public-facing systems relative to CUI systems?","What firewall rules prevent a compromised DMZ host from reaching internal CUI systems?","Are there any direct connections between your DMZ and CUI networks? If so, justify them.","How do you test and validate that segmentation controls are working?"]},
+
+  {id:"SC.L2-3.13.6",domain:"SC",domainFull:"System & Comms Protection",title:"Network Communication by Exception",
+   statement:"Deny network communications traffic by default and allow network communications traffic by exception (i.e., deny all, permit by exception).",
+   plain:"Your network firewall default posture should be to deny all traffic, with only explicitly approved communications permitted. 'Permit all, block known-bad' (blacklisting) is far weaker than 'deny all, permit known-good' (allowlisting). This deny-by-default approach ensures that new, unexpected, or unauthorized network flows are blocked automatically rather than requiring an administrator to discover and block them.",
+   evidence:["Firewall configuration documentation showing default-deny rule at the end of each ruleset","Evidence of rule review process ensuring all permit rules are justified","Network flow analysis showing denied traffic","Firewall rule management documentation and approval process for new rules","Penetration test results confirming unexpected traffic is blocked"],
+   questions:["Is your firewall configured with a default-deny rule — does traffic that doesn't match an explicit permit get dropped?","How is a new firewall permit rule requested and approved?","How do you review existing firewall rules to ensure all permits are still justified and necessary?","How would you detect if an unexpected network flow was occurring between systems that should not communicate?"]},
+
+  {id:"SC.L2-3.13.7",domain:"SC",domainFull:"System & Comms Protection",title:"Split Tunneling",
+   statement:"Prevent remote devices from simultaneously establishing non-remote connections with the system and local connections to resources in other domains (i.e., split tunneling).",
+   plain:"Split tunneling allows a VPN user to simultaneously route some traffic through the VPN and some directly to the internet via their local connection. This is dangerous because malware or unauthorized access can exploit the local connection to reach your VPN-connected systems. Full tunnel VPN (all traffic goes through the corporate tunnel) prevents this by routing all traffic through the monitored corporate infrastructure.",
+   evidence:["VPN configuration documentation showing split tunneling is disabled (full tunnel mode)","Network capture or routing table evidence confirming all traffic routes through VPN","Policy requiring full tunnel VPN for remote access to CUI systems","Remote access security testing confirming split tunneling is not possible","Evidence of how internet browsing is handled for remote users (through corporate proxy via VPN)"],
+   questions:["Is split tunneling enabled or disabled on your VPN? Can you demonstrate this technically?","How is internet traffic handled for remote users who are connected to the VPN — does it go through corporate infrastructure or directly out their local internet connection?","What are the security implications of your current VPN routing design?","Have you tested to confirm that a remote user cannot simultaneously access CUI systems via VPN and other networks directly?"]},
+
+  {id:"SC.L2-3.13.8",domain:"SC",domainFull:"System & Comms Protection",title:"Data in Transit",
+   statement:"Implement cryptographic mechanisms to prevent unauthorized disclosure of CUI during transmission unless otherwise protected by alternative physical safeguards.",
+   plain:"CUI must be encrypted whenever it is transmitted over any network — internal or external, wired or wireless. TLS for web applications, encrypted email (S/MIME or PGP), encrypted VPN tunnels, SFTP instead of FTP — any path that CUI travels over must be protected by cryptography. This includes internal network transmission, not just communication across the internet.",
+   evidence:["TLS configuration documentation for all CUI-transmitting applications","Email encryption policy and implementation evidence","File transfer protocol configuration (SFTP, FTPS in place of FTP)","Network capture analysis confirming traffic is encrypted","Certificate management documentation for encryption infrastructure"],
+   questions:["How is CUI encrypted when transmitted across your internal network — is TLS enforced for all internal communications?","Are there any unencrypted protocols in use for CUI transmission — FTP, HTTP, Telnet?","How do you manage TLS certificates for CUI applications — how do you ensure they don't expire?","Has a network capture or security assessment confirmed that CUI is not transmitted in clear text anywhere?"]},
+
+  {id:"SC.L2-3.13.9",domain:"SC",domainFull:"System & Comms Protection",title:"Connections Termination",
+   statement:"Terminate network connections after a defined period of inactivity or at the end of a communication session.",
+   plain:"Network sessions — whether TCP connections, VPN tunnels, or application sessions — should not remain open indefinitely after activity has ceased. Idle sessions are an attack vector: a hijacked idle session can be used by an attacker without the legitimate user noticing. Timeouts should be enforced at the network device level (firewalls, load balancers) as well as at the application level.",
+   evidence:["Firewall or load balancer timeout configuration documentation","Application session timeout settings for web applications handling CUI","VPN session idle timeout configuration","Network device configuration showing connection state timeout values","Evidence of testing that idle sessions are terminated within the defined period"],
+   questions:["What timeout period is configured for network connections and VPN sessions?","How are session timeouts enforced — at the network device, application, or both levels?","Can you demonstrate that an idle network session to a CUI system terminates after the defined period?","How do timeout settings balance security with user experience — what was the rationale for the configured values?"]},
+
+  {id:"SC.L2-3.13.10",domain:"SC",domainFull:"System & Comms Protection",title:"Key Management",
+   statement:"Establish and manage cryptographic keys for required cryptography employed in organizational systems.",
+   plain:"Encryption is only as good as key management. Cryptographic keys must be generated securely, stored protectively, rotated regularly, and destroyed properly at end of life. Lost or exposed keys compromise all data encrypted with them. A key management process must cover the full key lifecycle: generation, distribution, storage, use, rotation, and destruction.",
+   evidence:["Key management policy covering full key lifecycle","Key management system or HSM (Hardware Security Module) documentation","Key rotation schedule and evidence of rotation occurring","Evidence of secure key storage (HSM, key vault, encrypted key store)","Procedure for key compromise response (what happens if a key is exposed)"],
+   questions:["How are cryptographic keys generated, stored, and protected in your environment?","What is your key rotation policy — how often are keys rotated, and how is rotation implemented without service interruption?","If a cryptographic key were compromised, what is the response process — how quickly can keys be revoked and replaced?","Are your keys stored in an HSM or dedicated key management system, or are they stored on the systems that use them?"]},
+
+  {id:"SC.L2-3.13.11",domain:"SC",domainFull:"System & Comms Protection",title:"CUI Encryption",
+   statement:"Employ FIPS-validated cryptography when used to protect the confidentiality of CUI.",
+   plain:"When encrypting CUI, the cryptographic modules used must be FIPS 140-2 or 140-3 validated. This means using government-approved, tested implementations — not just any encryption library. Windows with FIPS mode enabled, OpenSSL with FIPS module, and hardware HSMs with FIPS validation are common implementations. Using AES-256 isn't enough by itself if the implementation isn't FIPS-validated.",
+   evidence:["FIPS mode configuration documentation for Windows systems handling CUI","FIPS-validated cryptographic module certificates for encryption solutions in use","Vendor documentation confirming FIPS validation for encryption products","FIPS compliance verification evidence from security assessments","TLS configuration confirming only FIPS-approved cipher suites are allowed"],
+   questions:["What FIPS-validated cryptographic modules or products are used to encrypt CUI?","Is Windows FIPS mode enabled on systems handling CUI, and what impact has that had on application compatibility?","How do you verify that third-party encryption tools used for CUI are FIPS-validated — do you check the NIST CMVP database?","Are there any encryption implementations in use that are not FIPS-validated? If so, what is the remediation plan?"]},
+
+  {id:"SC.L2-3.13.12",domain:"SC",domainFull:"System & Comms Protection",title:"Collaborative Device Control",
+   statement:"Prohibit remote activation of collaborative computing devices and provide indication of use to users present at the device.",
+   plain:"Collaboration devices — cameras, microphones, screen sharing — must not be remotely activatable without the knowledge of the person at the device. A conference room camera that can be activated remotely without any indication is a surveillance risk. If CUI is discussed in that room, unauthorized parties could listen in. Physical indicators (LEDs, on-screen notifications) must alert users when devices are active.",
+   evidence:["Policy prohibiting remote activation of cameras and microphones without user consent","Technical configuration showing cameras and microphones cannot be enabled remotely without user indication","Evidence of hardware privacy indicators (LED lights) on cameras and microphones","Conferencing system configuration documentation","Security review of collaboration platform settings related to remote activation"],
+   questions:["Can cameras or microphones in your CUI work areas be remotely activated without a physical indicator alerting the people present?","How are collaborative computing devices (conference room systems, laptops) configured to prevent unauthorized remote activation?","What indication is provided to users when a camera or microphone is active?","How do you manage collaboration platforms (Zoom, Teams, Webex) to ensure they cannot be used for unauthorized surveillance?"]},
+
+  {id:"SC.L2-3.13.13",domain:"SC",domainFull:"System & Comms Protection",title:"Mobile Code",
+   statement:"Control and monitor the use of mobile code.",
+   plain:"Mobile code — JavaScript, Java applets, ActiveX, Flash, and similar content that downloads and executes in a browser or client — must be controlled. Malicious mobile code is a common malware delivery mechanism. This means controlling which types of mobile code are allowed to execute, from which sources, and monitoring for mobile code execution. Browser hardening policies and web proxies with content inspection help implement this.",
+   evidence:["Browser configuration policy restricting unauthorized mobile code execution","Web proxy content filtering configuration blocking malicious mobile code sources","Endpoint protection signatures detecting malicious mobile code","Application allowlisting coverage of browser extensions and plugins","Policy documenting approved mobile code types and sources"],
+   questions:["How do you control what mobile code can execute in browsers on CUI systems — are there restrictions on JavaScript sources, browser extensions, or plugin types?","Is there a web proxy or content filter inspecting mobile code before it reaches endpoints?","How do you prevent browser extensions and plugins that are not authorized from running on CUI systems?","What monitoring is in place to detect malicious mobile code execution on endpoints?"]},
+
+  {id:"SC.L2-3.13.14",domain:"SC",domainFull:"System & Comms Protection",title:"VoIP",
+   statement:"Control and monitor the use of Voice over Internet Protocol (VoIP) technologies.",
+   plain:"VoIP systems can be a path for eavesdropping, unauthorized outbound calls, or data exfiltration if not properly secured. VoIP traffic carrying discussions of CUI must be encrypted, access to VoIP systems must be controlled, and the use of VoIP infrastructure must be monitored. This includes both desk phones and software-based VoIP (Teams, Zoom, WebEx) used in environments where CUI is discussed.",
+   evidence:["VoIP encryption configuration (SRTP, TLS-protected SIP signaling)","VoIP access control documentation showing only authorized users can make calls","VoIP call logging and monitoring configuration","Approved VoIP platform list and prohibition of unauthorized VoIP applications","Security assessment of VoIP infrastructure"],
+   questions:["Is VoIP traffic encrypted — are you using SRTP for media and TLS for SIP signaling?","How is access to your VoIP system controlled — can unauthorized users make or receive calls?","Are VoIP calls involving CUI discussions monitored or logged?","Are unauthorized VoIP applications (consumer VoIP tools) prohibited on networks where CUI is discussed?"]},
+
+  {id:"SC.L2-3.13.15",domain:"SC",domainFull:"System & Comms Protection",title:"Communications Authenticity",
+   statement:"Protect the authenticity of communications sessions.",
+   plain:"Communications must be protected against session hijacking and man-in-the-middle attacks. An attacker who can intercept and inject traffic into a communication session can impersonate legitimate parties, modify data in transit, or steal session tokens. TLS with proper certificate validation, mutual TLS for critical system-to-system communications, and anti-spoofing measures protect communication authenticity.",
+   evidence:["TLS implementation documentation confirming proper certificate validation","Evidence that certificate pinning or mutual TLS is used for high-value system communications","Anti-spoofing controls documentation (IP spoofing, email spoofing prevention - SPF, DKIM, DMARC)","Session token security documentation (HTTPOnly, Secure flags, token rotation)","Web application security testing results covering session management"],
+   questions:["How do you prevent session hijacking in web applications handling CUI — what session security controls are implemented?","Is mutual TLS used for system-to-system API communications involving CUI?","How do you protect against man-in-the-middle attacks — are certificates validated properly, and is HSTS enforced?","What email authentication controls (SPF, DKIM, DMARC) are implemented to prevent email spoofing?"]},
+
+  {id:"SC.L2-3.13.16",domain:"SC",domainFull:"System & Comms Protection",title:"Data at Rest",
+   statement:"Protect the confidentiality of CUI at rest.",
+   plain:"CUI stored on any system — servers, workstations, databases, backups, file shares — must be encrypted or otherwise protected so that unauthorized access to the storage medium doesn't result in CUI exposure. Full-disk encryption for endpoints, database encryption, and encrypted file shares are common implementations. The encryption must be meaningful — not just a folder set to read-only.",
+   evidence:["Full-disk encryption deployment documentation for servers and workstations handling CUI","Database encryption configuration (TDE - Transparent Data Encryption)","File share encryption or access control documentation","Encryption key management for data-at-rest protection","Evidence that CUI is not stored on unencrypted portable or removable media"],
+   questions:["How is CUI protected at rest on servers and workstations — full-disk encryption, file-level encryption, database encryption?","Is database encryption (TDE) implemented for databases storing CUI?","How do you ensure that CUI is not stored on unencrypted systems or locations — is there a data inventory?","What encryption standard and key length are used for data-at-rest protection?"]},
+
+  // ── SYSTEM & INFORMATION INTEGRITY (SI) ───────────────────────────────────
+  {id:"SI.L1-3.14.1",domain:"SI",domainFull:"System & Info Integrity",title:"Flaw Remediation",
+   statement:"Identify, report, and correct information system flaws; test software and firmware updates related to flaw remediation for effectiveness and potential side effects before installation; install security-relevant software updates within a defined time period.",
+   plain:"Software vulnerabilities (flaws) must be discovered, tracked, and patched within defined timeframes. Critical patches shouldn't sit unapplied for months. Testing patches before deployment is important but shouldn't be used as an excuse for indefinite delay. The organization must define acceptable patching windows by severity and then meet those commitments. Unpatched systems are one of the most common attack entry points.",
+   evidence:["Patch management policy with defined remediation timelines by severity","Patch tracking system showing applied patches and outstanding items","Evidence of patch testing process (test environment, rollback plan)","Recent patch compliance reports showing coverage and timeliness","Exception process documentation for patches that cannot be applied immediately"],
+   questions:["What are your defined patching timelines for critical, high, medium, and low vulnerabilities?","How do you track patch compliance across your CUI systems — what tool or process?","How are patches tested before deployment to production — is there a test environment?","What is your process when a critical patch cannot be applied immediately — what compensating controls are put in place?"]},
+
+  {id:"SI.L2-3.14.2",domain:"SI",domainFull:"System & Info Integrity",title:"Malicious Code Protection",
+   statement:"Provide protection from malicious code at appropriate locations within organizational systems.",
+   plain:"Anti-malware protection must be deployed at multiple layers — not just on endpoints but also at email gateways, web proxies, and file storage. Defense in depth means catching malicious code at every possible entry point. A single antivirus on laptops is insufficient. Signatures must be kept current, real-time protection must be enabled, and malware detections must be responded to.",
+   evidence:["Endpoint protection platform (EDR/EPP) deployment coverage report","Email gateway anti-malware configuration documentation","Web proxy or DNS filtering for malicious code protection","Malware definition update schedule and compliance reporting","Detection and response records showing how malware incidents are handled"],
+   questions:["Where is malicious code protection deployed — endpoints only, or also at email gateways, web proxies, and network chokepoints?","How frequently are malware definitions updated, and how do you verify all endpoints are receiving updates?","What is the response process when malware is detected — who is notified and what actions are taken automatically vs. manually?","How do you handle systems that cannot run traditional AV — legacy systems, OT, embedded devices?"]},
+
+  {id:"SI.L2-3.14.3",domain:"SI",domainFull:"System & Info Integrity",title:"Security Alerts",
+   statement:"Monitor organizational systems and information system components to detect attacks and indicators of potential attacks in accordance with monitoring objectives, and identify unauthorized use of organizational systems.",
+   plain:"You must actively monitor your systems for signs of attack — intrusion attempts, malware, unauthorized access, anomalous behavior. This requires threat intelligence (knowing what to look for), monitoring tools (SIEM, IDS/IPS, EDR), and people to review and respond to alerts. Monitoring must be intentional and tuned — alert fatigue from thousands of noisy, unreviewed alerts is as bad as no monitoring.",
+   evidence:["Security monitoring program documentation defining monitoring objectives","SIEM deployment with alert rules tied to known attack techniques (MITRE ATT&CK)","IDS/IPS signature and alert configuration","Threat intelligence integration evidence","Alert investigation records showing security events are reviewed and responded to"],
+   questions:["What monitoring tools are in use and what attack techniques are you monitoring for?","How are security alerts prioritized and triaged — is there a defined process?","How many security alerts does your SIEM generate per day, and what percentage are investigated?","How do you incorporate threat intelligence to ensure you are monitoring for current attack techniques?"]},
+
+  {id:"SI.L2-3.14.4",domain:"SI",domainFull:"System & Info Integrity",title:"Update Malicious Code Protection",
+   statement:"Update malicious code protection mechanisms when new releases are available.",
+   plain:"Anti-malware tools are only as good as their most recent update. Signature-based detection is useless against new malware if signatures aren't current. Updates must happen automatically and frequently — daily at minimum for signatures, with rapid deployment of engine updates. The update mechanism itself must be monitored to ensure updates are actually reaching all systems, not just theoretically scheduled.",
+   evidence:["AV/EDR automatic update configuration showing update frequency","Compliance report showing signature currency across all managed endpoints","Alert or monitoring for systems with out-of-date AV signatures","Patch schedule for AV engine (not just signatures) updates","Evidence that definition updates are tested before deployment if there is a delay"],
+   questions:["How frequently are malware protection signatures updated — are updates automatic, and what is the maximum age before an alert is generated?","How do you verify that all endpoints have received the latest signatures — is there a compliance dashboard?","What happens when a system is offline for an extended period and misses signature updates — how is it handled upon reconnection?","Is there a separate process for engine updates versus signature updates?"]},
+
+  {id:"SI.L2-3.14.5",domain:"SI",domainFull:"System & Info Integrity",title:"System & File Scanning",
+   statement:"Perform periodic scans of organizational systems and real-time scans of files from external sources as files are downloaded, opened, or executed.",
+   plain:"Anti-malware protection must include both scheduled full-system scans and real-time scanning of files as they are accessed or downloaded. A file that slipped through real-time scanning might be caught by a scheduled full scan. Real-time scanning catches threats at the moment of access. Both mechanisms are required. Scan results must be logged and reviewed.",
+   evidence:["Real-time scan configuration in endpoint protection tools","Scheduled full-system scan configuration and scan logs","Evidence that downloaded files from external sources are scanned before execution","Scan result logs showing detected and cleaned items","Policy defining scan frequency for scheduled scans"],
+   questions:["How is real-time scanning configured — does it scan files on access, on download, or both?","What is the schedule for full system scans, and are results logged and reviewed?","How do you ensure files downloaded from the internet are scanned before execution?","What happens if a file is detected during a scheduled scan that was missed by real-time scanning?"]},
+
+  {id:"SI.L2-3.14.6",domain:"SI",domainFull:"System & Info Integrity",title:"Monitor Organizational Systems",
+   statement:"Monitor organizational systems to detect attacks and indicators of potential attacks in accordance with monitoring objectives.",
+   plain:"System monitoring goes beyond just malware detection. You must monitor for unauthorized changes to system configurations, unexpected process execution, unusual network connections, privilege escalation attempts, and other indicators of compromise. This requires host-based monitoring, network monitoring, and log analysis working together to provide comprehensive visibility.",
+   evidence:["System monitoring architecture documentation showing coverage","Host-based intrusion detection or EDR behavioral monitoring configuration","Network traffic analysis or NDR tool deployment evidence","Log collection scope covering security-relevant system events","Monitoring objectives documentation defining what is monitored and why"],
+   questions:["What system-level behaviors are you monitoring for beyond malware — unauthorized process execution, privilege escalation, configuration changes?","How does your EDR or host-based monitoring detect behavioral indicators of compromise beyond signature-based detection?","How is network traffic monitored for anomalous behavior or lateral movement?","What is your process when monitoring detects an indicator of compromise?"]},
+
+  {id:"SI.L2-3.14.7",domain:"SI",domainFull:"System & Info Integrity",title:"Identify Unauthorized Use",
+   statement:"Identify unauthorized use of organizational systems.",
+   plain:"You must be able to detect when your systems are being used in unauthorized ways — not just unauthorized access, but unauthorized use by authorized users. An authorized user accessing systems at 3 AM from an unusual location, downloading unusually large volumes of data, or accessing systems outside their normal scope represents unauthorized use even if they authenticated correctly. User behavior analytics (UBA) and baseline profiling help identify these anomalies.",
+   evidence:["User behavior analytics (UBA) or UEBA tool configuration","Baseline behavior profiles for users and systems","Alerting rules for anomalous usage patterns (off-hours access, unusual data volume, atypical system access)","Investigation records for identified unauthorized use cases","Policy defining what constitutes unauthorized use beyond simple access control violation"],
+   questions:["How do you detect unauthorized use by authorized users — what behavioral monitoring is in place?","Do you have user behavior analytics or UEBA tooling that establishes baselines and alerts on deviations?","Can you give me an example of a scenario where an authorized user's activities would trigger an unauthorized use alert?","How are unauthorized use detections investigated and, if confirmed, escalated?"]},
+];
+
+// ── State ────────────────────────────────────────────────────────────────
+let currentDomain = 'ALL';
+let currentSearch  = '';
+let currentControlId = null;
+let confidenceMap  = {};
+try { confidenceMap = JSON.parse(localStorage.getItem('cmmc_confidence') || '{}'); } catch(e){}
+
+function saveConf() {
+  try { localStorage.setItem('cmmc_confidence', JSON.stringify(confidenceMap)); } catch(e){}
+}
+
+// ── Build Domain Tabs ────────────────────────────────────────────────────
+function buildTabs() {
+  const domains = [...new Set(CONTROLS.map(c => c.domain))];
+  const tabsEl = document.getElementById('domainTabs');
+  domains.forEach(d => {
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+    tab.dataset.domain = d;
+    tab.textContent = d;
+    tab.onclick = () => filterDomain(d, tab);
+    tabsEl.appendChild(tab);
+  });
+}
+
+function filterDomain(domain, el) {
+  currentDomain = domain;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  currentSearch = document.getElementById('searchInput').value.toLowerCase();
+  renderList();
+}
+
+function getFiltered() {
+  return CONTROLS.filter(c => {
+    const dm = currentDomain === 'ALL' || c.domain === currentDomain;
+    const sr = !currentSearch ||
+      c.id.toLowerCase().includes(currentSearch) ||
+      c.title.toLowerCase().includes(currentSearch) ||
+      c.plain.toLowerCase().includes(currentSearch) ||
+      c.statement.toLowerCase().includes(currentSearch);
+    return dm && sr;
+  });
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  const listEl = document.getElementById('listView');
+  document.getElementById('countBadge').textContent = `${filtered.length} control${filtered.length!==1?'s':''}`;
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div class="empty-state">No controls match.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(c => {
+    const conf = confidenceMap[c.id] || 'none';
+    const confLabel = {none:'Unreviewed', needs:'Needs Review', good:'Confident'}[conf];
+    return `<div class="control-card" onclick="showDetail('${c.id}')">
+      <div class="card-top">
+        <div class="card-id">${c.id}</div>
+        <div class="card-domain-badge domain-${c.domain}">${c.domain}</div>
+      </div>
+      <div class="card-title">${c.title}</div>
+      <div class="card-preview">${c.plain}</div>
+      <div class="card-footer">
+        <span class="confidence-pill confidence-${conf}">${confLabel}</span>
+        <span class="chevron">›</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const total     = CONTROLS.length;
+  const reviewed  = CONTROLS.filter(c => confidenceMap[c.id]).length;
+  const confident = CONTROLS.filter(c => confidenceMap[c.id]==='good').length;
+  document.getElementById('progressLabel').textContent =
+    `${confident}/${total} confident · ${reviewed} reviewed`;
+}
+
+function showDetail(id) {
+  const c = CONTROLS.find(x => x.id === id);
+  if (!c) return;
+  currentControlId = id;
+
+  document.getElementById('dId').textContent = c.id;
+  document.getElementById('dTitle').textContent = c.title;
+  document.getElementById('dBadges').innerHTML =
+    `<span class="card-domain-badge domain-${c.domain}">${c.domain} · ${c.domainFull}</span>`;
+  document.getElementById('dStatement').textContent = c.statement;
+  document.getElementById('dPlain').textContent = c.plain;
+  document.getElementById('dEvidence').innerHTML = c.evidence.map(e=>`<li>${e}</li>`).join('');
+  document.getElementById('dQuestions').innerHTML = c.questions.map(q=>`<li>${q}</li>`).join('');
+
+  updateConfButtons();
+
+  document.getElementById('listMain').style.display  = 'none';
+  document.getElementById('detailView').classList.add('visible');
+  document.getElementById('detailView').scrollTop = 0;
+  document.getElementById('confBar').classList.add('visible');
+}
+
+function updateConfButtons() {
+  const conf = confidenceMap[currentControlId] || 'none';
+  document.getElementById('btnNeeds').classList.toggle('selected', conf==='needs');
+  document.getElementById('btnGood').classList.toggle('selected',  conf==='good');
+}
+
+function setConfidence(level) {
+  if (confidenceMap[currentControlId] === level) delete confidenceMap[currentControlId];
+  else confidenceMap[currentControlId] = level;
+  saveConf();
+  updateConfButtons();
+}
+
+function goBack() {
+  document.getElementById('listMain').style.display = 'flex';
+  document.getElementById('detailView').classList.remove('visible');
+  document.getElementById('confBar').classList.remove('visible');
+  currentControlId = null;
+  renderList();
+}
+
+function goRandom() {
+  const pool = getFiltered();
+  if (!pool.length) return;
+  showDetail(pool[Math.floor(Math.random()*pool.length)].id);
+}
+
+buildTabs();
+renderList();
+</script>
+</body>
+</html>
